@@ -2,9 +2,6 @@
 .env
 .env.*
 
-# Private planning notes (a separate repository)
-.vroni/
-
 # Build output
 /bin/
 /dist/
