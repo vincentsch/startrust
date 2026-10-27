@@ -1,0 +1,39 @@
+# Talks to the real GitHub API and GH Archive, so it runs apart from the fast
+# tests, weekly and when started by hand. It catches changes on their side
+# that the recorded fixtures cannot.
+name: Live
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - name: Check real repos
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Optional repository variable: a repo expected to come out
+          # medium or high.
+          STARTRUST_LIVE_FLAGGED: ${{ vars.STARTRUST_LIVE_FLAGGED }}
+        run: make live
+      - name: Run the action script on a real repo
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          INPUT_REPOSITORY: junegunn/fzf
+          INPUT_ARGS: --explain
+        run: |
+          make build
+          STARTRUST_BIN="$PWD/bin/startrust" bash scripts/action.sh
+          grep -q '## Stars of' "$GITHUB_STEP_SUMMARY"

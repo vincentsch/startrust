@@ -1,0 +1,55 @@
+junegunn/fzf · 83,796 stars · created 2013-10-23
+https://github.com/junegunn/fzf
+
+No unusual pattern. The stars arrived steadily, and the biggest day had 223
+stars, 9x a normal day.
+Risk: low
+
+Activity
+  4,698 forks (56 per 1,000 stars)
+    445 watchers
+     61 issues and pull requests in the last 90 days
+  In StarTrust's comparison of 182 organic repos, every one had at least 10
+  forks per 1,000 stars. Watchers and issues vary a lot with the kind of repo.
+  But most repos flagged for bought stars also had normal numbers here, so
+  normal numbers do not prove that the stars are real. Few forks alone also mean
+  nothing, because tools such as `composer thanks` star library repos
+  automatically.
+
+Stars per quarter, 2013-10 to 2026-10
+2,931 ┤                                         ▂▅▁▁  ▃ █▂
+      │                          ▂          ▃   ████▆▄█▅██▂
+      │                ▅  ▂ ▁   ▃█    ▁ ▄█▃ █  ▃███████████
+      │                █  █▁█▆████▅████▇███▆█▇▄████████████
+      │             ▂▃ █▃▄█████████████████████████████████
+      │        ▁▅ ▂▁██▃████████████████████████████████████
+      │     ▁▅▆██▇█████████████████████████████████████████▅
+      │▂▃▇▅▄████████████████████████████████████████████████
+      └─┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───
+        2014    2016    2018    2020    2022    2024    2026
+                       5  3                 2      4  1
+
+Busiest days, at least a week apart
+  1  2025-07-09  223 stars   9x normal         2% one-off accounts
+  2  2023-03-23  171 stars   8x normal         3% one-off accounts
+  3  2018-08-31  156 stars  11x normal  spike  2% one-off accounts
+  4  2024-10-27  153 stars   7x normal
+  5  2017-10-20  149 stars  12x normal  spike
+
+What stands out
+- Accounts with no other public stars recorded in GH Archive within 30 days: 2%
+  on 2025-07-09, 3% on 2023-03-23 and 2% on 2018-08-31. For comparison, organic
+  developer tools in the calibration set had up to 21%, and viral lists and
+  repos about a cause up to 38%.
+
+Limits
+- Anyone can star any repo, so a pattern here says nothing about who arranged
+  it.
+- GitHub only counts stars that still exist. Stars from deleted accounts are
+  missing from the history.
+- Account checks use GH Archive, a public third-party record of GitHub events.
+  Since June 2025 it has missed a growing share of all stars, and since June
+  2026 almost all of them.
+
+Checked <time> using 25 GitHub requests and 3 GH Archive queries,
+without a GitHub token. Add --details for the full evidence.

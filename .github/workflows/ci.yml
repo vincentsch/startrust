@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - name: Build
+        run: go build ./...
+      - name: Test
+        run: go test ./...
+
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - name: Check formatting and vet
+        run: make lint
+      - name: Check whitespace
+        run: git diff --check
+      - name: Race test
+        run: make race
+      - name: Check command docs
+        run: make docs-check
+      - name: Check documentation links
+        run: make links
+      - name: Check command conformance
+        run: make conformance
+      - name: Build release binaries
+        run: make build-all VERSION=v0.0.0-ci
+
+  clickhouse:
+    # The GH Archive query runs on a real ClickHouse server, so the SQL is
+    # checked by the database and not only by the fakes in the unit tests.
+    runs-on: ubuntu-latest
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:24.8-alpine
+        env:
+          CLICKHOUSE_SKIP_USER_SETUP: '1'
+        ports:
+          - 8123:8123
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+      - name: Run the GH Archive query on ClickHouse
+        env:
+          STARTRUST_CLICKHOUSE_URL: http://127.0.0.1:8123/?user=default
+        run: make clickhouse

@@ -1,0 +1,46 @@
+flagged_i/repo · 1,132 stars · created 2023-07-28
+https://github.com/flagged_i/repo
+
+Not enough data to judge. Most stars arrived with the launch, and timing alone
+cannot tell a launch from a star campaign. The accounts were not checked
+(--no-archive). It has 4 forks, and 0 issues and pull requests were opened in
+the last 90 days, see below.
+Risk: unknown
+
+Activity
+  4 forks (3.5 per 1,000 stars)
+  0 watchers
+  0 issues and pull requests in the last 90 days
+  In StarTrust's comparison of 182 organic repos, every one had at least 10
+  forks per 1,000 stars. Watchers and issues vary a lot with the kind of repo.
+  But most repos flagged for bought stars also had normal numbers here, so
+  normal numbers do not prove that the stars are real. Few forks alone also mean
+  nothing, because tools such as `composer thanks` star library repos
+  automatically.
+
+Stars per month, 2023-07 to 2025-08
+1,126 ┤  ██
+      │  ██
+      │  ██
+      │  ██
+      │  ██
+      │  ██
+      │  ██
+      │  ██▁▁  ▁▁▁▁                            ▁▁      ▁▁
+      └────────────┬───────────────────────┬───────────────
+       2023        2024                    2025
+          1
+
+Busiest days, at least a week apart
+  1  2023-08-26  499 stars  499x normal  launch
+
+Limits
+- Anyone can star any repo, so a pattern here says nothing about who arranged
+  it.
+- GitHub only counts stars that still exist. Stars from deleted accounts are
+  missing from the history.
+- The accounts were not checked (--no-archive), so the verdict rests on the
+  timing of the stars.
+
+Checked <time> using 6 GitHub requests, without a GitHub token.
+Add --details for the full evidence.

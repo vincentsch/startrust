@@ -1,0 +1,48 @@
+name: StarTrust
+description: Check whether a GitHub repo's stars look bought and add the report to the job summary.
+branding:
+  icon: star
+  color: blue
+inputs:
+  repository:
+    description: Repo to check, as owner/name.
+    default: ${{ github.repository }}
+  version:
+    description: StarTrust release tag such as v0.1.0, or latest.
+    default: latest
+  fail-on:
+    description: Fail the step when the risk is at least this level (low, medium or high). Empty never fails.
+    default: ''
+  badge:
+    description: Also write a Shields.io endpoint badge JSON file to this path.
+    default: ''
+  args:
+    description: Extra flags for startrust check, such as --explain or --no-archive.
+    default: ''
+  token:
+    description: GitHub token for the API. The default job token is enough for public repos.
+    default: ${{ github.token }}
+outputs:
+  risk:
+    description: low, medium, high or unknown.
+    value: ${{ steps.check.outputs.risk }}
+  verdict:
+    description: The verdict, as shown first in the report.
+    value: ${{ steps.check.outputs.verdict }}
+  report:
+    description: Path of the full JSON report.
+    value: ${{ steps.check.outputs.report }}
+runs:
+  using: composite
+  steps:
+    - name: Check stars
+      id: check
+      shell: bash
+      env:
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_BADGE: ${{ inputs.badge }}
+        INPUT_ARGS: ${{ inputs.args }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/action.sh"

@@ -1,0 +1,20 @@
+# Local environment
+.env
+.env.*
+
+# Private planning notes (a separate repository)
+.vroni/
+
+# Build output
+/bin/
+/dist/
+/startrust
+*.exe
+*.test
+*.out
+coverage.txt
+
+# Editors
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,144 @@
+# Troubleshooting
+
+Start with the error message. StarTrust says what failed and why. It also
+says what you can try next. The sections below cover the common cases.
+
+## "GitHub's rate limit is used up"
+
+Without a token, GitHub allows 60 requests an hour from your IP address.
+A check of an old repo can use 20 or more of them. Log in with the GitHub
+CLI (`gh auth login`) or set `GITHUB_TOKEN` to get 5,000 an hour. The
+message says when the limit resets. When it says "for this token", the
+token's own limit is used up, so wait until then.
+
+When the limit runs out halfway through a history, StarTrust still prints
+a report for the part it read and says which dates it covers.
+
+## "GitHub rejected the token"
+
+Your GitHub token has expired or was revoked. StarTrust found it in
+`GITHUB_TOKEN` or `GH_TOKEN`, or in your GitHub CLI login. StarTrust
+continues without it and says so under Limits. Run `gh auth login` again
+or create a new token.
+
+## "GitHub has no public repository called ..."
+
+Check the spelling. Private repos only work with a token that can read
+them. A repo that was renamed still works under its old name, because
+GitHub forwards it. The report then shows the current name.
+
+## "No account check from GH Archive"
+
+The account check uses ClickHouse's free public endpoint. The message says
+why it failed:
+
+- "the free public endpoint's hourly limit is used up" means that you read
+  as much as the endpoint allows per user and hour. Try again later.
+  StarTrust saves the answers for older days, so a second check of the same
+  repo costs less.
+- With "the endpoint is down" or a timeout, try again later. You can also
+  use `--no-archive` to check the repo without the account check.
+
+The rest of the check still runs. Without account data, unusual spikes and
+bursts stay at risk "medium". A repo whose timing StarTrust can judge, and
+that shows nothing unusual, gets "No unusual pattern in the star timing".
+The verdict then says that the accounts could not be checked. A young repo,
+or one that got most of its stars at its launch, gets risk "unknown".
+
+## "too few in GH Archive"
+
+GH Archive does not record every star. Since June 2025 it has missed a
+growing share, and since June 2026 almost all of them.
+[Limits](limits.md#gh-archive-has-gaps) has the numbers by month. StarTrust
+only judges a day when the archive has at least 30 of its stargazers and at
+least 40% of the stars GitHub counts, on the day and in the weeks around
+it. For newer spikes, use `--explain` to look for a Hacker News post or a
+release.
+
+When GH Archive has no stars at all for a busy day, the repo may have had
+another name then. GH Archive files stars under the name at the time, so
+check the repo under its old name, such as
+`startrust check old-owner/old-name`.
+
+## "Too new to judge" or "Not enough data to judge"
+
+StarTrust could not judge the repo, so the risk is "unknown". Timing alone
+cannot tell a launch from a star campaign, and a repo needs about 240 days
+of history before StarTrust can find a burst in it. When the accounts also
+could not be checked, nothing is left to judge by. For repos created in
+2026 this is common, because GH Archive has too few records of their busy
+days.
+
+This says nothing good or bad about the repo. `--fail-on` does not fail on
+it, and the badge says "too new to judge" or "not enough data". The verdict
+names the repo's forks and recent issues, and "Activity" shows them next to
+its stars, so you can weigh the repo yourself.
+
+If the verdict says that only part of the star history was read, the check
+stopped early. Run it again later, or with a token.
+
+## "GitHub's search did not answer"
+
+StarTrust counts a repo's recent issues and pull requests with one GitHub
+search. Without a token, GitHub allows 10 searches a minute, so a `compare`
+of many repos can run out. The report then shows "?" for that count, and
+the JSON has `null`. The Limits part of the report says why the search
+failed. The rest of the check is not affected. Wait a minute and run it
+again, or log in with `gh auth login` for 30 searches a minute.
+
+## "provisional"
+
+The busy day is less than about a month old. The account check counts the
+stars each account gave in the 30 days before and after the day, and the
+days after have not all happened yet. StarTrust shows the share so far but
+leaves it out of the risk. The Limits part of the report says from which
+day the check counts. Run the same check again after that day.
+
+## "--deep needs push access"
+
+GitHub only shows who starred a repo to people with push access to it.
+Make sure StarTrust uses a token of an account with push access.
+`gh auth status` shows which account the GitHub CLI uses. For repos you
+don't maintain, use the check without `--deep`.
+
+## You pressed Ctrl-C
+
+StarTrust stops and prints a report of what it read so far. The report
+says that it is partial, and the risk is usually "unknown". The exit code
+is 130. The partial report is not saved, so `report` and `badge` still show
+the last full check. StarTrust saves the GH Archive answers it already got,
+so running the same command again costs less.
+
+## A --deep run stopped halfway
+
+Run the same command again within a day. StarTrust saved the stargazers it
+had listed and continues from there.
+
+## No progress messages
+
+Progress goes to stderr while you wait, but only when both stdout and
+stderr are a terminal. It stays off with `--json` or `--quiet`, and when
+the output goes to a pipe or a file.
+
+## The chart looks broken
+
+The chart uses Unicode block characters. Use a terminal font that has them
+(any common monospace font does). On older Windows consoles, use Windows
+Terminal.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| 0 | The check ran. Read the verdict for the result. |
+| 1 | Wrong use, such as a bad repo name or flag. |
+| 2 | Something failed that StarTrust could not work around, for example a network error or a file it could not write. The message says what failed. |
+| 3 | GitHub rejected the token on a request that needed it. |
+| 4 | GitHub refused access. |
+| 5 | The repo does not exist, or there is no such file or saved check. |
+| 6 | GitHub's rate limit is used up, or `--max-requests` was reached before anything useful was read. |
+| 7 | `--fail-on` matched, because the risk is at or above the level you set. An unknown risk never matches. |
+| 130 | You pressed Ctrl-C. The report StarTrust printed is partial, and it was not saved. |
+
+`compare` prints the repos it could check and then exits with the code of
+the first repo that failed.

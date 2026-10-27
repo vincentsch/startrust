@@ -1,0 +1,42 @@
+vincentsch/explainroo · 651 stars · created 2026-09-25
+https://github.com/vincentsch/explainroo
+
+Too new to judge. The repo is 32 days old, and timing alone cannot tell a launch
+from a star campaign. GH Archive has too few records of the busiest day to check
+the accounts. So far it has 45 forks and 40 issues and pull requests, see below.
+Risk: unknown
+
+Activity
+  45 forks
+   2 watchers
+  40 issues and pull requests so far
+
+Stars per day, 2026-09-25 to 2026-10-26
+261 ┤            ██
+    │            ██
+    │            ██
+    │            ██
+    │            ██
+    │            ██
+    │            ██  ▃▃  ▆▆
+    │          ▇▇██▆▆██▇▇██▆▆▄▄▆▆▁▁▃▃▃▃▂▂▃▃▂▂▂▂▄▄▂▂▂▂▅▅▃▃▂▂▃▃▃▃▃▃▃▃▁▁
+    └──────┬─────┬───────┬─────────────┬─────────────┬─────────────┬─
+     Sep 25      Oct 1   Oct 5         Oct 12        Oct 19        Oct 26
+                  1
+
+Busiest days, at least a week apart
+  1  2026-10-01  261 stars  261x normal  launch  too few in GH Archive
+
+Limits
+- Anyone can star any repo, so a pattern here says nothing about who arranged
+  it.
+- GitHub only counts stars that still exist. Stars from deleted accounts are
+  missing from the history.
+- Account checks use GH Archive, a public third-party record of GitHub events.
+  Since June 2025 it has missed a growing share of all stars, and since June
+  2026 almost all of them.
+- GH Archive has too few records to check the accounts on 2026-10-01 (5 of 261
+  stars).
+
+Checked <time> using 3 GitHub requests and 1 GH Archive query,
+without a GitHub token. Add --details for the full evidence.

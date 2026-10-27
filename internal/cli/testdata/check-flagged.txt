@@ -1,0 +1,64 @@
+flagged_a/repo · 65,143 stars · created 2022-03-15
+https://github.com/flagged_a/repo
+
+Unusual star pattern. On 3 of the busiest days, 41% to 90% of the accounts that
+starred had no other public stars recorded in GH Archive within 30 days. Bought
+or traded stars often look like this, so look closer before you trust the star
+count.
+Risk: high
+
+Activity
+  3,443 forks (53 per 1,000 stars)
+  1,414 watchers
+      8 issues and pull requests in the last 90 days
+  In StarTrust's comparison of 182 organic repos, every one had at least 10
+  forks per 1,000 stars. Watchers and issues vary a lot with the kind of repo.
+  But most repos flagged for bought stars also had normal numbers here, so
+  normal numbers do not prove that the stars are real. Few forks alone also mean
+  nothing, because tools such as `composer thanks` star library repos
+  automatically.
+
+Stars per month, 2022-03 to 2025-08
+14,509 ┤                    ▅▆█
+       │                    ███
+       │                    ███
+       │                    ███ ▇
+       │                    ███ █
+       │                    ███▄█▂
+       │                    ██████▅
+       │▁      ▁       ▁▁▁▁▁████████▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+       └──────────┬───────────┬───────────┬───────
+        2022      2023        2024        2025
+                            1,5
+                              2
+                             3,4
+
+Busiest days, at least a week apart
+  1  2023-11-16  5,082 stars  5,082x normal  unusual spike  41% one-off accounts
+  2  2024-01-03  3,337 stars      8x normal                 90% one-off accounts
+  3  2023-12-16  1,357 stars      4x normal                 60% one-off accounts
+  4  2023-12-09    785 stars      3x normal
+  5  2023-11-27    637 stars    637x normal  part of 1
+
+What stands out
+- Unusual spike on 2023-11-16: 5,082 stars in one day. A normal day in the four
+  weeks before had under 1 star.
+- 69% of all stars arrived in 90 days, from 2023-11-16 to 2024-02-13 (about 500
+  a day). Before that the repo got about 2 stars a day, and in the last 90 days
+  about 2 stars a day.
+- Accounts with no other public stars recorded in GH Archive within 30 days: 41%
+  on 2023-11-16, 90% on 2024-01-03 and 60% on 2023-12-16. No organic repo in the
+  calibration set reached 40%. Most days of repos flagged by research were above
+  50%.
+
+Limits
+- Anyone can star any repo, so a pattern here says nothing about who arranged
+  it.
+- GitHub only counts stars that still exist. Stars from deleted accounts are
+  missing from the history.
+- Account checks use GH Archive, a public third-party record of GitHub events.
+  Since June 2025 it has missed a growing share of all stars, and since June
+  2026 almost all of them.
+
+Checked <time> using 9 GitHub requests and 3 GH Archive queries,
+without a GitHub token. Add --details for the full evidence.

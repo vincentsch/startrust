@@ -1,0 +1,14 @@
+Repo            Stars   Risk    Result             Biggest day
+flagged_a/repo  65,143  medium  1 unusual spike    5,082 on 2023-11-16
+junegunn/fzf    83,796  low     no unusual timing  223 on 2025-07-09
+
+Stars per 4 months, 2013-09 to 2026-09 (each line scaled to its own peak)
+flagged_a/repo │                         ▁ ▁ ▁▇█▁▁▁▁
+junegunn/fzf   │▁▁▁▁▁▂▂▂▂▂▃▃▅▃▄▅▅▅▅▆▅▅▅▅▅▆▆▅▆▅▅▇█▇▇▇▆█▇▃
+
+flagged_a/repo: One unusual spike and most stars in one burst.
+junegunn/fzf: No unusual pattern in the star timing. The accounts behind the
+  busiest days were not checked.
+
+nobody/nothing could not be checked: GitHub has no public repository called
+  nobody/nothing (or it is private and your token cannot see it)
