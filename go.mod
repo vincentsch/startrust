@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.9
-	github.com/vincentsch/rungrad v0.3.4
+	github.com/vincentsch/rungrad v0.3.5
 	golang.org/x/term v0.29.0
 )
 
