@@ -103,7 +103,8 @@ StarTrust also checks the biggest day of each unusual spike.
 
 For each day, it asks GH Archive who starred the repo that day, on
 GitHub's Pacific calendar. It takes a random sample of up to 1,000 of those
-accounts, the same sample each time. For each account in the sample, it
+accounts, the same sample each time. The report marks a share from such a
+sample with "(sample)". For each account in the sample, it
 counts the public stars the account gave in the 30 days before and after.
 An account is **one-off** when GH Archive recorded no other public star
 from it in those two months.
@@ -114,7 +115,10 @@ starred a developer tool gave 10 to 44 stars in those two months. Accounts
 used in star campaigns often exist to star one or a few repos.
 
 StarTrust only judges a day when GH Archive has at least 30 of its
-stargazers and at least 40% of the stars GitHub counts for that day. The
+stargazers and at least 40% of the stars GitHub counts for that day. GH
+Archive can also have more stargazers than GitHub counts. GitHub drops a
+star when the account is deleted or the star is taken back, but GH Archive
+keeps its record. Such a day counts as fully recorded. The
 two months around the day also matter. When GH Archive misses stars there,
 it also misses the other stars of these accounts, and they look one-off
 when they are not. So the same query counts all stars that GH Archive

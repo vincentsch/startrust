@@ -61,6 +61,39 @@ func TestSmallSamplesShowTheirCounts(t *testing.T) {
 	}
 }
 
+func TestSampledSharesSaySo(t *testing.T) {
+	// GH Archive had 1,616 accounts, and StarTrust checked 1,000 of them.
+	day := time.Date(2022, 7, 29, 0, 0, 0, 0, time.UTC)
+	sampled := check.Day{Day: day, Stars: 1566, Accounts: &archive.Cohort{Day: day, GitHubStars: 1566, Archived: 1616, Checked: 1000, OneOff: 80}}
+	if got := accountsText(sampled); got != "8% one-off (sample)" {
+		t.Errorf("sampled day: %q", got)
+	}
+	r := &check.Result{Repository: "a/b", Stars: 1566, Days: []check.Day{sampled}, Details: &check.Details{}}
+	var out strings.Builder
+	Text(&out, r, true)
+	text := strings.Join(strings.Fields(out.String()), " ")
+	for _, want := range []string{
+		"On days marked (sample), GH Archive had more than 1,000 accounts, so StarTrust checked 1,000 of them.",
+		"GH Archive has 1,616 accounts, a sample of 1,000 checked, 80 one-off",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("the report does not say %q:\n%s", want, out.String())
+		}
+	}
+	var markdown strings.Builder
+	Markdown(&markdown, r, false)
+	if !strings.Contains(markdown.String(), "On days marked (sample)") {
+		t.Errorf("the Markdown report does not explain the sample:\n%s", markdown.String())
+	}
+	// A day with every account checked gets no note.
+	sampled.Accounts.Archived = 1000
+	out.Reset()
+	Text(&out, r, false)
+	if strings.Contains(out.String(), "sample") {
+		t.Errorf("a day without a sample mentions one:\n%s", out.String())
+	}
+}
+
 func TestActivityShowsWhatIsKnown(t *testing.T) {
 	checked := time.Date(2026, 10, 26, 18, 0, 0, 0, time.UTC)
 	issues, one := 142, 1

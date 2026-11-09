@@ -106,40 +106,112 @@ means anything:
 
 ## Fields
 
+### The repo and the result
+
 | Field | Meaning |
 | --- | --- |
-| `risk` | `low`, `medium`, `high` or `unknown`. See [risk levels](how-it-works.md#risk-levels). |
-| `verdict` | The verdict that the terminal shows first. It says what the check saw, in a few sentences. |
-| `headline` | The result in a few words, such as `no unusual pattern`, `no unusual timing`, `1 unusual spike`, `more one-off accounts`, `unusual pattern`, `too new to judge` or `not enough data`. The badge shows it. |
+| `schema_version` | `1`. It goes up when the layout changes in a way that breaks readers. |
+| `repository` | The repo as `owner/name`, spelled the way GitHub spells it now. A renamed repo shows its new name. |
+| `url` | The repo's page on GitHub. |
+| `checked_at` | When the check ran, in UTC. |
+| `created_at` | When the repo was created on GitHub. |
+| `stars` | The star count from GitHub's repo summary. |
 | `forks` | Forks of the repo, from GitHub's repo summary. |
 | `watchers` | People who get GitHub's notifications for the repo. |
 | `issues_and_prs_90_days` | Issues and pull requests opened in the last 90 days, from one GitHub search. For a repo younger than 90 days, all of them. `null` when it was not counted, for example when the search limit of 10 a minute without a token was used up. Then `sources.issues_problem` says why, unless Ctrl-C stopped the check first. |
-| `accounts_checked` | `all`, `some` or `none`. It says whether StarTrust could check the accounts behind the busy days that needed it. With `none`, the verdict rests on the timing of the stars. |
+| `archived` | `true` when the repo is archived on GitHub, which makes it read-only. This has nothing to do with GH Archive. |
+| `risk` | `low`, `medium`, `high` or `unknown`. See [risk levels](how-it-works.md#risk-levels). |
+| `verdict` | The verdict that the terminal shows first. It says what the check saw, in a few sentences. |
+| `headline` | The result in a few words, such as `no unusual pattern`, `no unusual timing`, `1 unusual spike`, `more one-off accounts`, `unusual pattern`, `too new to judge` or `not enough data`. The badge shows it. |
 | `findings` | The evidence behind the verdict, one sentence each. |
 | `limits` | What the check could not see. |
-| `days` | Up to five of the busiest days, biggest first, at least 7 days apart. |
-| `days[].day` | The date on GitHub's calendar (US Pacific time), written as midnight UTC. |
-| `days[].normal_day` | Median stars per day in the 28 days before. |
-| `days[].times_normal` | Stars that day divided by the normal day (a normal day under 1 counts as 1). |
-| `days[].spike` | `launch`, `unusual`, `spike`, or empty when the day is not part of a spike. |
-| `days[].accounts` | The GH Archive check for that day, when it ran. |
-| `accounts.archived` | Accounts GH Archive saw starring that day. |
-| `accounts.window_recorded` | Stars GH Archive recorded across GitHub per day in the 30 days before and after, compared with the week of the day. Under 1 means that GH Archive recorded the weeks around the day more thinly. For a provisional day it covers only the days so far. |
-| `accounts.checked` | Accounts in the sample (at most 1,000). 0 on a day with a `problem`. |
-| `accounts.one_off` | Checked accounts with no other public stars recorded in GH Archive within 30 days before or after. 0 on a day with a `problem`. |
-| `accounts.judged` | `true` when the share counts. Only then is `one_off` out of `checked` worth reading. |
-| `accounts.problem` | Set when GH Archive had too little data to judge the day, on the day or in the weeks around it. |
-| `accounts.provisional` | `true` while the 30 days after the day are not over. The share does not count until then. |
-| `days[].profiles` | With `--deep`: `accounts`, `new`, `empty` and `new_or_empty` counts for that day. An account can be both new and empty. |
-| `days[].explanations` | With `--explain`: Hacker News posts (`kind: hacker_news`) and releases (`kind: release`) near the day. |
+| `accounts_checked` | `all`, `some` or `none`. It says whether StarTrust could check the accounts behind the busy days that needed it. With `none`, the verdict rests on the timing of the stars. |
+| `biggest_day` | The day with the most stars, laid out like an entry of `days`. It is usually also in `days`. `null` for a repo without stars. |
 | `unusual_spikes` | How many unusual spikes the history has, cleared or not. |
+| `days` | Up to five of the busiest days, biggest first, at least 7 days apart. |
 | `burst` | The burst window and daily rates, or `null`. |
+| `history_from` and `history_to` | The first and the last day of the star history that was read. |
 | `history_partial` | `true` when only part of the history was read. GitHub may have stopped answering, or the check hit `--max-requests` or Ctrl-C. |
-| `sources.history` | `complete`, `partial` or `unavailable`. |
-| `sources.archive` | `used`, `partial`, `unavailable`, `not_needed` (no day was big enough) or `off` (`--no-archive`). |
-| `sources.stargazers` | `listed`, `partial`, `hidden` or `off` (without `--deep`). |
-| `sources.token_source` | The GitHub token the check used: `GITHUB_TOKEN`, `GH_TOKEN`, `gh` (the token that `gh auth token` gave, from your GitHub CLI login) or `none`. It is `none` with `--no-token`, and after GitHub rejected the token. |
-| `sources.*_problem` | The reason a source was partial or unavailable. |
+
+### Busy days
+
+Each entry of `days` and the `biggest_day` has these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `day` | The date on GitHub's calendar (US Pacific time), written as midnight UTC. |
+| `stars` | The stars GitHub counts for that day. |
+| `normal_day` | Median stars per day in the 28 days before. |
+| `times_normal` | Stars that day divided by the normal day. A normal day under 1 star counts as 1. |
+| `spike` | `launch`, `unusual`, `spike`, or empty when the day is not part of a spike. |
+| `accounts` | The GH Archive check for that day, when it ran. See below. |
+| `profiles` | With `--deep`: `accounts`, `new`, `empty` and `new_or_empty` counts for that day. An account can be both new and empty. |
+| `explanations` | With `--explain`: Hacker News posts (`kind: hacker_news`) and releases (`kind: release`) near the day. |
+
+### The account check of a day
+
+StarTrust checks the accounts behind up to 3 of the busiest days with at
+least 50 stars, and behind the biggest day of each unusual spike. For each
+of these days, `accounts` has these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `day` | The same day as above. |
+| `github_stars` | The stars GitHub counts for that day. |
+| `archived` | Accounts GH Archive saw starring the repo that day. It can be higher than `github_stars` (see below). |
+| `window_recorded` | How well GH Archive recorded the weeks around the day. See below. |
+| `checked` | Accounts StarTrust checked: all of `archived`, or a sample of 1,000 when there were more. 0 on a day with a `problem`. |
+| `one_off` | Checked accounts with no other public stars recorded in GH Archive within 30 days before or after. 0 on a day with a `problem`. |
+| `judged` | `true` when the share counts. Only then is `one_off` out of `checked` worth reading. |
+| `problem` | Set when GH Archive had too little data to judge the day, on the day or in the weeks around it. |
+| `provisional` | `true` while the 30 days after the day are not over. The share does not count until then. |
+
+StarTrust checks at most 1,000 accounts per day. When GH Archive has more
+stargazers for a day, StarTrust checks a sample of 1,000 of them, and it
+picks the same 1,000 every time. Then `checked` is 1,000 and smaller than
+`archived`, and the share of one-off accounts is the share in the sample.
+The terminal and Markdown reports mark such a share with "(sample)".
+
+`archived` can be higher than `github_stars`. GitHub counts only the stars
+that still exist. When an account is deleted or someone takes a star back,
+GitHub's count drops, but GH Archive keeps its record of the star. A day
+with more stars in GH Archive than on GitHub counts as fully recorded.
+[Limits](limits.md#gh-archive-has-gaps) has these shares by month.
+
+`window_recorded` compares two numbers from GH Archive: the stars it
+recorded per day across all of GitHub in the 61 days from 30 days before
+to 30 days after the day, and the stars per day in the week around the
+day. `1` means that the weeks around the day were recorded as well as its
+week. Under 1 means that they were recorded more thinly. Then the other
+stars of the day's accounts can be missing too, and the accounts would
+look one-off when they are not. StarTrust multiplies the share of the
+day's stars that GH Archive has by `window_recorded` (at most 1). It
+judges the day only when the result is at least 40%. A provisional day
+leaves `window_recorded` out of this, because the weeks after it have not
+all happened.
+
+### Sources
+
+`sources` says where the data came from, what it cost and what was
+missing.
+
+| Field | Meaning |
+| --- | --- |
+| `history` | `complete`, or `partial` when only part of the star history was read. Then `history_problem` says why. |
+| `archive` | The account check in GH Archive: `used` (every day that needed it got an answer), `partial` (some days did), `unavailable` (no day did), `not_needed` (no day was big enough) or `off` (`--no-archive`). |
+| `stargazers` | The stargazer list for `--deep`: `listed`, `partial`, `hidden` (GitHub does not show it to this token) or `off` (without `--deep`). |
+| `explain` | The lookup for `--explain`: `used`, `partial` or `off` (without `--explain`). |
+| `github_requests` | GitHub API requests this check sent, retries included. In `compare`, each repo counts its own. |
+| `archive_queries` | Queries this check sent to GH Archive, at most one per checked day. Days whose answer was in the cache cost none. |
+| `token_source` | The GitHub token the check used: `GITHUB_TOKEN`, `GH_TOKEN`, `gh` (the token that `gh auth token` gave, from your GitHub CLI login) or `none`. It is `none` with `--no-token`, and after GitHub rejected the token. |
+| `history_problem` | Why the history is partial. |
+| `archive_problem` | Why GH Archive did not answer for a day. |
+| `stargazer_problem` | Why the stargazer list is `hidden` or `partial`. |
+| `explain_problem` | Why part of the `--explain` lookup failed. |
+| `token_problem` | Set when GitHub rejected the token. The check then ran without one. |
+| `issues_problem` | Why `issues_and_prs_90_days` is `null`. |
+
+A `*_problem` field is left out when there was no problem.
 
 ## With --details
 

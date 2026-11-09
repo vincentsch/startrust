@@ -86,6 +86,10 @@ func Settled(day, today time.Time) bool { return today.After(SettledOn(day)) }
 // Usable reports whether the day had enough archive data to judge.
 func (c Cohort) Usable() bool { return c.Problem == "" }
 
+// Sampled reports whether GH Archive had more accounts than were checked,
+// so the share comes from a sample of SampleSize of them.
+func (c Cohort) Sampled() bool { return c.Checked > 0 && c.Checked < c.Archived }
+
 // Share returns the one-off share of the checked accounts.
 func (c Cohort) Share() float64 {
 	if c.Checked == 0 {

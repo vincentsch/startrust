@@ -86,6 +86,11 @@ Read these fields from the JSON, and only these:
   report a share. That day has a `problem` (GH Archive had too little
   data, and `checked` and `one_off` are 0) or is `provisional` (too
   recent to count).
+- StarTrust checks at most 1,000 accounts per day. When `checked` is
+  smaller than `archived`, the share comes from a sample of 1,000 of the
+  day's accounts. Say so when you report it. `archived` can be higher than
+  `github_stars`, because GitHub drops the stars of deleted accounts and
+  stars that were taken back, while GH Archive keeps them.
 
 Do not compute your own verdict from `days`, `times_normal`,
 `unusual_spikes` or the activity numbers. The verdict already compares

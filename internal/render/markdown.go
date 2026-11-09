@@ -49,6 +49,9 @@ func Markdown(w io.Writer, r *check.Result, details bool) {
 		if hasExplanations(r) {
 			fmt.Fprintln(w)
 		}
+		if note := sampleNote(r); note != "" {
+			fmt.Fprintf(w, "%s\n\n", escape(note))
+		}
 		if note := explainNote(r); note != "" {
 			fmt.Fprintf(w, "%s\n\n", escape(note))
 		}

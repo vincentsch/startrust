@@ -37,6 +37,9 @@ func Text(w io.Writer, r *check.Result, details bool) {
 		fmt.Fprintln(w)
 		fmt.Fprintln(w, "Busiest days, at least a week apart")
 		writeDays(w, r)
+		if note := sampleNote(r); note != "" {
+			fmt.Fprintln(w, wrap("  "+note, 80, "  "))
+		}
 		if note := explainNote(r); note != "" {
 			fmt.Fprintln(w, wrap("  "+note, 80, "  "))
 		}
@@ -207,12 +210,16 @@ func accountsText(d check.Day) string {
 		switch {
 		case !c.Usable():
 			parts = append(parts, "too few in GH Archive")
+		case c.Provisional && c.Sampled():
+			parts = append(parts, fmt.Sprintf("%d%% so far (provisional, sample)", int(math.Round(c.Share()*100))))
 		case c.Provisional:
 			parts = append(parts, fmt.Sprintf("%d%% so far (provisional)", int(math.Round(c.Share()*100))))
 		case c.Checked < check.MinSample:
 			// A share of a small sample shows its counts, so nobody reads
 			// 30% of 30 accounts like 30% of 1,000.
 			parts = append(parts, fmt.Sprintf("%s of %s one-off", check.Number(c.OneOff), check.Number(c.Checked)))
+		case c.Sampled():
+			parts = append(parts, fmt.Sprintf("%d%% one-off (sample)", int(math.Round(c.Share()*100))))
 		default:
 			parts = append(parts, fmt.Sprintf("%d%% one-off accounts", int(math.Round(c.Share()*100))))
 		}
@@ -221,6 +228,18 @@ func accountsText(d check.Day) string {
 		parts = append(parts, fmt.Sprintf("%d%% new or empty profiles", int(math.Round(100*float64(p.NewOrEmpty)/float64(p.Accounts)))))
 	}
 	return strings.Join(parts, ", ")
+}
+
+// sampleNote explains the days whose share comes from a sample, so nobody
+// takes it for a count of every account.
+func sampleNote(r *check.Result) string {
+	for _, d := range r.Days {
+		if c := d.Accounts; c != nil && c.Usable() && c.Sampled() {
+			return fmt.Sprintf("On days marked (sample), GH Archive had more than %s accounts, so StarTrust checked %s of them. "+
+				"It picks the same %s every time.", check.Number(archive.SampleSize), check.Number(archive.SampleSize), check.Number(archive.SampleSize))
+		}
+	}
+	return ""
 }
 
 // explainNote says when --explain ran but found nothing to show, so the
@@ -348,9 +367,9 @@ func writeDetails(w io.Writer, r *check.Result) {
 			case !c.Usable():
 				text += ", too few to judge"
 			case c.Provisional:
-				text += fmt.Sprintf(", %s checked, %s one-off so far (provisional)", check.Number(c.Checked), check.Number(c.OneOff))
+				text += fmt.Sprintf(", %s checked, %s one-off so far (provisional)", checkedText(c), check.Number(c.OneOff))
 			default:
-				text += fmt.Sprintf(", %s checked, %s one-off", check.Number(c.Checked), check.Number(c.OneOff))
+				text += fmt.Sprintf(", %s checked, %s one-off", checkedText(c), check.Number(c.OneOff))
 			}
 			line("    ", "%s", text)
 		}
@@ -371,11 +390,19 @@ func writeDetails(w io.Writer, r *check.Result) {
 	}
 }
 
+// checkedText says how many accounts were checked, and whether they were a
+// sample of the day's accounts.
+func checkedText(c *archive.Cohort) string {
+	if c.Sampled() {
+		return "a sample of " + check.Number(c.Checked)
+	}
+	return check.Number(c.Checked)
+}
+
 // sourceWords turns the source states of the JSON into words.
 var sourceWords = map[string]string{
 	"history complete":    "complete",
 	"history partial":     "partly read",
-	"history unavailable": "unavailable",
 	"archive used":        "used",
 	"archive partial":     "partly used",
 	"archive unavailable": "unavailable",

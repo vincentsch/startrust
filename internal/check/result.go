@@ -119,7 +119,7 @@ type Explanation struct {
 
 // Sources says where the data came from and what was missing.
 type Sources struct {
-	History    string `json:"history"`    // "complete", "partial" or "unavailable"
+	History    string `json:"history"`    // "complete" or "partial"
 	Archive    string `json:"archive"`    // "used", "partial", "unavailable", "not_needed" or "off"
 	Stargazers string `json:"stargazers"` // "listed", "partial", "hidden" or "off"
 	Explain    string `json:"explain"`    // "used", "partial" or "off"

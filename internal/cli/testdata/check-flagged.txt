@@ -34,11 +34,13 @@ Stars per month, 2022-03 to 2025-08
                              3,4
 
 Busiest days, at least a week apart
-  1  2023-11-16  5,082 stars  5,082x normal  unusual spike  41% one-off accounts
-  2  2024-01-03  3,337 stars      8x normal                 90% one-off accounts
-  3  2023-12-16  1,357 stars      4x normal                 60% one-off accounts
+  1  2023-11-16  5,082 stars  5,082x normal  unusual spike  41% one-off (sample)
+  2  2024-01-03  3,337 stars      8x normal                 90% one-off (sample)
+  3  2023-12-16  1,357 stars      4x normal                 60% one-off (sample)
   4  2023-12-09    785 stars      3x normal
   5  2023-11-27    637 stars    637x normal  part of 1
+  On days marked (sample), GH Archive had more than 1,000 accounts, so StarTrust
+  checked 1,000 of them. It picks the same 1,000 every time.
 
 What stands out
 - Unusual spike on 2023-11-16: 5,082 stars in one day. A normal day in the four
