@@ -56,6 +56,17 @@ func TestCohortReadsTheAnswer(t *testing.T) {
 	}
 }
 
+func TestCohortWithNoArchivedStarsSaysNone(t *testing.T) {
+	client := fakeClickHouse(t, 200, `{"data":[[0,0,0,61000,7000]]}`, nil)
+	cohort, err := client.Cohort(context.Background(), []string{"vincentsch/explainroo"}, day, 165, today)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cohort.Problem != "GH Archive has none of the 165 stars from this day" {
+		t.Errorf("problem = %q", cohort.Problem)
+	}
+}
+
 func TestCohortWithTooFewArchivedStarsIsNotUsable(t *testing.T) {
 	client := fakeClickHouse(t, 200, `{"data":[[5,5,2,61000,7000]]}`, nil)
 	cohort, err := client.Cohort(context.Background(), []string{"vincentsch/explainroo"}, day, 261, today)

@@ -123,6 +123,8 @@ func (c *Cohort) Judge(today time.Time) {
 		window = min(1, c.WindowRecorded)
 	}
 	switch {
+	case c.Archived == 0:
+		c.Problem = fmt.Sprintf("GH Archive has none of the %s stars from this day", thousands(c.GitHubStars))
 	case c.Archived < MinAccounts || c.dayCoverage() < MinCoverage:
 		c.Problem = fmt.Sprintf("GH Archive has only %s of the %s stars from this day", thousands(c.Archived), thousands(c.GitHubStars))
 	case c.dayCoverage()*window < MinCoverage:
