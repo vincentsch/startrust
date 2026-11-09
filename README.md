@@ -47,17 +47,17 @@ This is the output for fzf, a popular fuzzy finder whose stars have grown
 steadily for 13 years:
 
 ```text
-junegunn/fzf · 83,802 stars · created 2013-10-23
+junegunn/fzf · 84,096 stars · created 2013-10-23
 https://github.com/junegunn/fzf
 
-No unusual pattern. The stars arrived steadily, and the biggest day had 223
+No unusual pattern. The stars arrived steadily, and the biggest day had 222
 stars, 9x a normal day.
 Risk: low
 
 Activity
-  4,699 forks (56 per 1,000 stars)
-    445 watchers
-     61 issues and pull requests in the last 90 days
+  3,847 forks (46 per 1,000 stars)
+    446 watchers
+     51 issues and pull requests in the last 90 days
   In StarTrust's comparison of 182 organic repos, every one had at least 10
   forks per 1,000 stars. Watchers and issues vary a lot with the kind of repo.
   But most repos flagged for bought stars also had normal numbers here, so
@@ -66,23 +66,23 @@ Activity
   automatically.
 
 Stars per quarter, 2013-10 to 2026-10
-2,930 ┤                                         ▂▅▁▁  ▃ █▂
-      │                          ▂          ▃   ████▆▄█▅██▂
-      │                ▅  ▂ ▁   ▃█    ▁ ▄█▃ █  ▃███████████
+2,925 ┤                                         ▂▅▁▁  ▃ █▂
+      │                          ▂          ▄   ████▆▄█▅██▂
+      │                ▅  ▃ ▁   ▃█    ▁ ▅█▃ █  ▃███████████
       │                █  █▁█▆████▅████▇███▆█▇▄████████████
       │             ▂▃ █▃▄█████████████████████████████████
-      │        ▁▅ ▂▁██▃████████████████████████████████████
-      │     ▁▅▆██▇█████████████████████████████████████████▅
+      │        ▁▅ ▂▁██▃████████████████████████████████████▅
+      │     ▁▅▆██▇██████████████████████████████████████████
       │▂▃▇▅▄████████████████████████████████████████████████
       └─┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───
         2014    2016    2018    2020    2022    2024    2026
                        5  3                 2      4  1
 
 Busiest days, at least a week apart
-  1  2025-07-09  223 stars   9x normal         2% one-off accounts
+  1  2025-07-09  222 stars   9x normal         2% one-off accounts
   2  2023-03-23  171 stars   8x normal         3% one-off accounts
   3  2018-08-31  156 stars  11x normal  spike  2% one-off accounts
-  4  2024-10-27  153 stars   7x normal
+  4  2024-10-27  152 stars   7x normal
   5  2017-10-20  149 stars  12x normal  spike
 
 What stands out
@@ -101,9 +101,9 @@ Limits
   2026 almost all of them. 2025-07-09 falls in that time, so GH Archive may have
   only part of its stargazers.
 
-Checked 2026-10-26 23:10 CET using 25 GitHub requests and 3 GH Archive queries.
-Used your GitHub CLI login, 5,000 requests an hour. 4,976 requests were left
-after this check. The limit resets at 00:10. Add --details for the full
+Checked 2026-11-09 12:52 CET using 25 GitHub requests and 3 GH Archive queries.
+Used your GitHub CLI login, 5,000 requests an hour. 4,977 requests were left
+after this check. The limit resets at 13:52. Add --details for the full
 evidence.
 ```
 
