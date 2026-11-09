@@ -104,8 +104,10 @@ name. When GH Archive has no stars at all for a busy day from before June
 2026, the Limits part of the report gives the command to run with
 `--former-name`, and the JSON has `"rename_suspected": true`. On later days
 GH Archive misses almost every star anyway, so a day without any record
-says nothing about the name. [Troubleshooting](troubleshooting.md#the-repo-was-renamed)
-shows how to find a former name.
+says nothing about the name. Without the old name, the accounts behind
+those days stay unchecked, and the check stays partial.
+[Troubleshooting](troubleshooting.md#the-repo-was-renamed) shows how to
+find a former name.
 
 StarTrust reads GH Archive through ClickHouse's free public endpoint. It is
 a demo service with an hourly limit per user, and it can be slow or down.

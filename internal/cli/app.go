@@ -66,13 +66,13 @@ func NewApp(services Services) *rungrad.App {
 	})
 	app.Root().Example = "startrust check junegunn/fzf\nstartrust check astral-sh/uv --details\nstartrust compare charmbracelet/glow junegunn/fzf"
 	// Every rungrad tool accepts --config and --dry-run. StarTrust has no
-	// settings to put in a file, and only cache prune changes anything, so
+	// settings to put in a file, and only cache prune deletes anything, so
 	// the help says what the two flags do here.
 	if flag := app.Root().PersistentFlags().Lookup("config"); flag != nil {
 		flag.Usage = "Ignored, because StarTrust has no config file"
 	}
 	if flag := app.Root().PersistentFlags().Lookup("dry-run"); flag != nil {
-		flag.Usage = "Show what cache prune would delete without deleting it (the other commands only read)"
+		flag.Usage = "Show what cache prune would delete without deleting it (the other commands ignore it)"
 	}
 	app.AddCommand(
 		checkCommand(services),

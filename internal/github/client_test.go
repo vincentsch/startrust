@@ -311,6 +311,11 @@ func TestHistoryPagesGrowsWithAge(t *testing.T) {
 	if got := HistoryPages(now.AddDate(0, -1, 0), now); got != 1 {
 		t.Errorf("one month old: %d pages", got)
 	}
+	// The docs say that a ten-year-old repo needs about 20 requests: 18
+	// pages, the repo summary and the issue search.
+	if got := HistoryPages(now.AddDate(-10, 0, 0), now); got != 18 {
+		t.Errorf("ten years old: %d pages, want 18", got)
+	}
 	// fzf is 13 years old and needed 23 pages.
 	if got := HistoryPages(time.Date(2013, 10, 23, 0, 0, 0, 0, time.UTC), now); got != 23 {
 		t.Errorf("fzf: %d pages, want 23", got)

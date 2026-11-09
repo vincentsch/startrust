@@ -27,13 +27,20 @@ func checkCommand(services Services) *rungrad.Command {
 			"public record of GitHub events. It prints the verdict first, then the evidence.\n\n" +
 			"Below the verdict you see the repo's activity, such as its forks and recent issues. They\n" +
 			"help when a repo is too new for StarTrust to judge, but they never change the risk.\n\n" +
-			"You need no setup. Without a token, GitHub allows 60 requests an hour, which is enough\n" +
-			"for one or two checks. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the\n" +
-			"GitHub CLI, StarTrust uses that token. The last lines of the report say which one it\n" +
-			"used and how many requests were left. Add --no-token to check without one.\n\n" +
+			"You need no setup. Without a token, GitHub allows 60 requests an hour. A check uses about\n" +
+			"one request for every 30 weeks of the repo's age, plus two, so a ten-year-old repo needs\n" +
+			"about 20. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the GitHub CLI,\n" +
+			"StarTrust uses that token. The last lines of the report say which one it used and how\n" +
+			"many requests were left. Add --no-token to check without one.\n\n" +
+			"StarTrust changes nothing on GitHub. It saves each check in its cache folder, so `report`\n" +
+			"and `badge` can show it later. `startrust cache list` shows where that folder is, and\n" +
+			"--cache-dir picks another one.\n\n" +
 			"GH Archive files stars under the name a repo had at the time. If the repo was renamed,\n" +
-			"add its old name with --former-name, and one check covers its whole history. Checking\n" +
-			"the old name itself works too, because GitHub forwards it to the repo.\n\n" +
+			"add its old name with --former-name, and one check covers its whole history. That is a\n" +
+			"new full check, with as many requests as the first one and one more for each name.\n" +
+			"Checking the old name itself works too, because GitHub forwards it to the repo. Without\n" +
+			"the old name the check stays partial, because the accounts behind the busy days from\n" +
+			"that time cannot be checked.\n\n" +
 			"Maintainers can add --deep to compare the profiles of the people who starred their repo.",
 		Args: oneArg("check takes one repo, such as junegunn/fzf; use `startrust compare` for several"),
 		Examples: []string{

@@ -6,10 +6,12 @@ says what you can try next. The sections below cover the common cases.
 ## "GitHub's rate limit is used up"
 
 Without a token, GitHub allows 60 requests an hour from your IP address.
-A check of an old repo can use 20 or more of them. The last lines of every
-report say how many requests were left after the check and when the limit
-resets. So you know before the next check whether enough are left. Log in with the GitHub
-CLI (`gh auth login`) or set `GITHUB_TOKEN` to get 5,000 an hour. The
+A check uses about one request for every 30 weeks of the repo's age, plus
+two. So a ten-year-old repo needs about 20, however many stars it has. The
+last lines of every report say how many requests were left after the check
+and when the limit resets. So you know before the next check whether
+enough are left. Log in with the GitHub CLI (`gh auth login`) or set
+`GITHUB_TOKEN` to get 5,000 an hour. The
 message says when the limit resets. When it says "for this token", the
 token's own limit is used up, so wait until then.
 
@@ -84,7 +86,17 @@ Put the repo's old name in place of `OLD-OWNER/OLD-NAME`. You can add
 `--former-name` more than once. StarTrust looks up every name in the same
 check, so one result covers the whole history. Checking the old name
 itself also works, such as `startrust check snowpackjs/astro`, because
-GitHub forwards it to the repo.
+GitHub forwards it to the repo. In `compare`, write the repo and its old
+name together:
+
+```sh
+startrust compare sindresorhus/is withastro/astro --former-name withastro/astro=snowpackjs/astro
+```
+
+A check with a former name is a new full check. It uses as many GitHub
+requests as the first one, plus one for each name. Without a token, look
+at the requests left in the last lines of the first report before you run
+it.
 
 GitHub does not list a repo's former names, so StarTrust cannot find them
 for you. Old links often show them, for example in the project's changelog
@@ -97,7 +109,16 @@ then.
 StarTrust only uses a former name that GitHub still forwards to the repo.
 For any other name it stops before the check with exit code 1 and a
 message such as "--former-name a/b: GitHub has no repo by that name". This
-keeps the stars of another repo out of the result.
+keeps the stars of another repo out of the result. So you can try a likely
+guess, such as the same name under an older organization. A wrong guess
+costs two requests. In `compare`, only the repo with the wrong name fails,
+and the others are still compared.
+
+If nobody knows the old name, the check stays partial. StarTrust has no
+other way to check the accounts behind those days. The risk line says how
+many busy days were checked, such as "Risk: low, accounts checked on 1 of 3
+busy days", and the verdict says which days are missing. Read such a
+result as weaker than a fully checked one.
 
 ## "Too new to judge" or "Not enough data to judge"
 

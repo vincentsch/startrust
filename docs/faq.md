@@ -26,8 +26,9 @@ Add `--no-token` to check without a token, even when one is set.
 No. You set everything with flags, and the token comes from the places
 above. `--config` shows up in the help because every command accepts it,
 but StarTrust ignores it. `--dry-run` is also on every command, but it only
-does something for `cache prune`. The other commands only read data, so
-there is nothing to preview. Saved checks go to the [cache](#where-is-the-cache).
+does something for `cache prune`, and the other commands ignore it. They
+change nothing on GitHub. `check` and `compare` save each result in the
+[cache](#where-is-the-cache).
 
 ## What does StarTrust send where?
 
@@ -54,14 +55,20 @@ Most checks take 5 to 15 seconds. About half of that goes to GitHub's
 history, and half to the account check. A repo that is many years old
 needs more history requests. `--deep` adds one request per 100 stargazers.
 
+A check uses about one GitHub request for every 30 weeks since the repo
+was created, plus two. The number of stars does not matter, so a small old
+repo can need more requests than a big young one. In a terminal, StarTrust
+prints its estimate before it starts.
+
 ## What if the repo was renamed?
 
 GH Archive files stars under the name a repo had at the time. Add the old
 name with `--former-name`, and StarTrust looks up both names in the same
-check. Checking the old name also works, because GitHub forwards it to the
-repo. When a busy day suggests a rename, the Limits part of the report says
-what to run. [Troubleshooting](troubleshooting.md#the-repo-was-renamed) has
-the details.
+check. In `compare`, write it as `--former-name repo=old-owner/old-name`.
+Checking the old name also works, because GitHub forwards it to the repo.
+When a busy day suggests a rename, the Limits part of the report says what
+to run. If you cannot find the old name, the check stays partial.
+[Troubleshooting](troubleshooting.md#the-repo-was-renamed) has the details.
 
 ## Why does the chart start before the first star?
 
@@ -163,6 +170,9 @@ It depends on your system:
 - macOS: `~/Library/Caches/startrust`
 - Windows: `%LocalAppData%\startrust`
 
-Each finished check is one JSON file. `startrust cache list` shows them,
-and `startrust cache prune --dry-run` shows what a cleanup would delete.
-`--cache-dir` points StarTrust at another folder.
+`check` and `compare` save each finished check there as one JSON file. They
+also save the GH Archive answers for past days, because those never change.
+Apart from files you ask for with `--out`, StarTrust writes nothing else on
+your computer. `startrust cache list` shows the saved checks and the
+folder, and `startrust cache prune --dry-run` shows what a cleanup would
+delete. `--cache-dir` points StarTrust at another folder.

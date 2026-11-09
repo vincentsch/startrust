@@ -15,7 +15,7 @@ Check if a GitHub repo's stars look bought
 ## Global flags
 
 - `--config` Ignored, because StarTrust has no config file. Type: `string`. Default: none.
-- `--dry-run` Show what cache prune would delete without deleting it (the other commands only read). Type: `bool`. Default: `false`.
+- `--dry-run` Show what cache prune would delete without deleting it (the other commands ignore it). Type: `bool`. Default: `false`.
 - `--json` Output stable JSON instead of the human view. Type: `bool`. Default: `false`.
 - `--no-prompt` Never block on an interactive prompt. Type: `bool`. Default: `false`.
 - `--quiet` Suppress non-essential output. Type: `bool`. Default: `false`.

@@ -725,16 +725,35 @@ func TestHelpSaysThereIsNoConfigFile(t *testing.T) {
 }
 
 func TestHelpSaysWhatDryRunDoes(t *testing.T) {
-	// Only cache prune changes anything, so --dry-run matters only there.
+	// Only cache prune deletes anything, so --dry-run matters only there.
+	// check saves to the cache, so the help must not say it only reads.
 	for _, args := range [][]string{{"--help"}, {"check", "--help"}} {
 		out := run(t, Services{}, args...)
-		if !strings.Contains(out.stdout, "--dry-run         Show what cache prune would delete without deleting it (the other commands only read)") {
+		if !strings.Contains(out.stdout, "--dry-run         Show what cache prune would delete without deleting it (the other commands ignore it)") ||
+			strings.Contains(out.stdout, "only read") {
 			t.Errorf("%v does not say what --dry-run does:\n%s", args, out.stdout)
 		}
 	}
 	dir := t.TempDir()
 	if out := run(t, Services{}, "cache", "prune", "--dry-run", "--cache-dir", dir); out.code != 0 || !strings.Contains(out.stdout, "Dry run: nothing would be deleted.") {
 		t.Errorf("exit %d, stdout %q, stderr %q", out.code, out.stdout, out.stderr)
+	}
+}
+
+func TestCheckHelpSaysWhatItSavesAndCosts(t *testing.T) {
+	// A reader of the help must learn that checks write to the cache, what
+	// a check costs, and that a rename without the old name stays partial.
+	out := strings.Join(strings.Fields(run(t, Services{}, "check", "--help").stdout), " ")
+	for _, want := range []string{
+		"StarTrust changes nothing on GitHub. It saves each check in its cache folder",
+		"`startrust cache list` shows where that folder is, and --cache-dir picks another one.",
+		"about one request for every 30 weeks of the repo's age, plus two",
+		"That is a new full check, with as many requests as the first one and one more for each name.",
+		"Without the old name the check stays partial",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("check --help is missing %q", want)
+		}
 	}
 }
 

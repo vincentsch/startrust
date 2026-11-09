@@ -219,9 +219,9 @@ Below the verdict, the terminal shows the risk level and on how many busy
 days the accounts were checked, such as "Risk: low, accounts checked on 1
 of 3 busy days". A low risk with fewer days checked rests partly on the
 timing of the stars. The risk itself does not change with it. In the JSON,
-the risk is in `risk`, `days_checked` and `days_to_check` give the
-coverage, and `headline` sums up the result in a few words. The badge shows the headline. `--details` shows all the numbers
-behind the verdict.
+the risk is in `risk`, and `days_checked` and `days_to_check` give the
+coverage. `headline` sums up the result in a few words, and the badge
+shows it. `--details` shows all the numbers behind the verdict.
 
 ## Calibration
 

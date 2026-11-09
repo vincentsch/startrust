@@ -9,8 +9,7 @@ logs and screenshots before you share them.
 
 ## What StarTrust reads and writes
 
-StarTrust only reads, and it changes nothing on GitHub. It sends read-only
-requests to:
+StarTrust changes nothing on GitHub. It sends read-only requests to:
 
 - the GitHub API
 - ClickHouse's public endpoint, for GH Archive

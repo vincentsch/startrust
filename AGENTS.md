@@ -2,9 +2,10 @@
 
 StarTrust checks whether a GitHub repo's stars look bought. It reports what
 the star history and the accounts behind the busiest days look like. It
-only reads data, and it changes nothing on GitHub. Follow these steps when a
-user asks you to check a repo. They also cover installing StarTrust and
-adding it to CI.
+changes nothing on GitHub. On this computer it only writes its cache
+folder, where it saves each check (see [step 2](#2-run-the-check)). Follow
+these steps when a user asks you to check a repo. They also cover
+installing StarTrust and adding it to CI.
 
 The setup prompt from the README is:
 
@@ -59,13 +60,22 @@ empty folder. If the user wants a check without any token, add
 `--no-token`. StarTrust reads no config file, so these are the only places
 a token can come from.
 
-Without a token GitHub allows 60 requests an hour. One check of an old repo
-can use 20 or more. `sources.github_requests` says how many the check
-used. `sources.github_rate_limit` has GitHub's own numbers after the check.
-Its `remaining` says how many requests were left, and `resets_at` says when
-the limit starts again. Look at `remaining` before you run more checks. If
-the command exits with code 6, the limit is used up. Tell the user when it
-resets (the message says) and that `gh auth login` raises it.
+Without a token GitHub allows 60 requests an hour. A check uses about one
+request for every 30 weeks of the repo's age, plus two. So a five-year-old
+repo needs about 11, and a ten-year-old repo about 20. The number of stars
+does not matter. Each `--former-name` adds one. `sources.github_requests`
+says how many the check used. `sources.github_rate_limit` has GitHub's own
+numbers after the check. Its `remaining` says how many requests were left,
+and `resets_at` says when the limit starts again. Look at `remaining`
+before you run more checks. If the command exits with code 6, the limit is
+used up. Tell the user when it resets (the message says) and that `gh auth
+login` raises it.
+
+Each check saves its result in StarTrust's cache folder, so `startrust
+report owner/repo` can show it again without new requests. `startrust
+cache list` shows where the folder is. To keep everything in the user's
+current folder instead, add `--cache-dir ./startrust-cache` to every
+command.
 
 Read these fields from the JSON, and only these:
 
@@ -137,6 +147,9 @@ for example:
 startrust check withastro/astro --former-name OLD-OWNER/OLD-NAME
 ```
 
+In `compare`, write the repo and its old name together, such as
+`--former-name withastro/astro=snowpackjs/astro`.
+
 1. Find the old name. Ask the user, or look for old links to the repo, for
    example in its changelog or release notes. GitHub does not list former
    names, so StarTrust cannot find them itself. Keep the capital letters of
@@ -145,12 +158,22 @@ startrust check withastro/astro --former-name OLD-OWNER/OLD-NAME
    of `OLD-OWNER/OLD-NAME`. StarTrust looks up every name in one check, so
    the new result covers the whole history. Use it instead of the first
    one, and tell the user that the check included the old name.
-3. A wrong name costs two requests. StarTrust asks GitHub whether the name
+3. A correct name runs the whole check again. It uses as many GitHub
+   requests as the first check (`sources.github_requests`), plus one for
+   each former name. Look at `sources.github_rate_limit.remaining` before
+   you run it.
+4. A wrong name costs two requests. StarTrust asks GitHub whether the name
    leads to the repo, and it stops with exit code 1 when it does not. Then
    try another name or go on without one.
-4. If you cannot find the old name, explain the first result. Say that the
-   accounts behind some busy days could not be checked, probably because
-   the repo had another name then.
+5. If neither you nor the user knows the old name, the check stays
+   partial. StarTrust has no other way to check those days. Explain the
+   first result, and give the risk with its coverage, such as "low,
+   accounts checked on 1 of 3 busy days". Say that the accounts behind the
+   other busy days were not checked, probably because the repo had another
+   name then. Never present it as a full check. If you have a likely guess,
+   such as the same name under an older organization, you can try it.
+   GitHub only forwards names the repo had, so a wrong guess costs two
+   requests and changes nothing.
 
 If `rename_suspected` is still `true` with a former name, the repo may have
 had yet another name. The limit then shows the command with every name so

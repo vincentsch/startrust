@@ -168,11 +168,17 @@ startrust check owner/repo --former-name old-owner/old-name   # a renamed repo: 
 startrust check your/repo --deep            # maintainers: compare the profiles of your stargazers
 ```
 
-GitHub allows 60 requests an hour without a token, which is enough for one
-or two checks. With a token the limit is 5,000. StarTrust uses the token in
-`GITHUB_TOKEN` or `GH_TOKEN`, or your GitHub CLI login. The last lines of the
-report say which one it used and how many requests were left. Add
-`--no-token` to check without one.
+GitHub allows 60 requests an hour without a token. A check uses about one
+request for every 30 weeks of the repo's age, plus two, so a ten-year-old
+repo needs about 20. With a token the limit is 5,000. StarTrust uses the
+token in `GITHUB_TOKEN` or `GH_TOKEN`, or your GitHub CLI login. The last
+lines of the report say which one it used and how many requests were left.
+Add `--no-token` to check without one.
+
+StarTrust changes nothing on GitHub. It saves each check in a cache folder
+on your computer, so `startrust report owner/repo` shows it again without
+new requests. `startrust cache list` shows where the folder is, and
+`--cache-dir` picks another one.
 
 For CI there is a GitHub Action, and `--fail-on` sets the exit code by risk.
 StarTrust can also make a Shields.io badge. See [CI and
