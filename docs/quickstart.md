@@ -162,6 +162,12 @@ says on how many busy days the accounts were checked, such as "1 of 3
 days". Below the table it draws their star histories on one timeline and
 prints each verdict.
 
+If one of the repos was renamed, add its old name to the same command:
+
+```sh
+startrust compare sindresorhus/is withastro/astro --former-name withastro/astro=snowpackjs/astro
+```
+
 ## Save and share a report
 
 ```sh

@@ -97,22 +97,39 @@ func checkCommand(services Services) *rungrad.Command {
 	}
 }
 
-// formerNameFlags reads --former-name. Each value is owner/name or a GitHub
-// URL. The names only matter for the account check in GH Archive.
+// formerNameFlags reads check's --former-name. Each value is owner/name or
+// a GitHub URL. The names only matter for the account check in GH Archive.
 func formerNameFlags(cmd *cobra.Command) ([]string, error) {
-	values, _ := cmd.Flags().GetStringArray("former-name")
-	if noArchive, _ := cmd.Flags().GetBool("no-archive"); noArchive && len(values) > 0 {
-		return nil, usageError("--former-name is for the account check in GH Archive, so it does nothing with --no-archive")
+	values, err := formerNameValues(cmd)
+	if err != nil {
+		return nil, err
 	}
 	var names []string
 	for _, value := range values {
-		name, ok := github.ParseName(value)
-		if !ok {
-			return nil, usageError("--former-name %q is not a GitHub repo; use owner/name, for example snowpackjs/astro", value)
+		name, err := parseFormerName(value)
+		if err != nil {
+			return nil, err
 		}
 		names = append(names, name)
 	}
 	return names, nil
+}
+
+// formerNameValues returns the --former-name values as typed.
+func formerNameValues(cmd *cobra.Command) ([]string, error) {
+	values, _ := cmd.Flags().GetStringArray("former-name")
+	if noArchive, _ := cmd.Flags().GetBool("no-archive"); noArchive && len(values) > 0 {
+		return nil, usageError("--former-name is for the account check in GH Archive, so it does nothing with --no-archive")
+	}
+	return values, nil
+}
+
+func parseFormerName(value string) (string, error) {
+	name, ok := github.ParseName(value)
+	if !ok {
+		return "", usageError("--former-name %q is not a GitHub repo; use owner/name, for example snowpackjs/astro", value)
+	}
+	return name, nil
 }
 
 // writeResult prints a result as text, Markdown or JSON, to the terminal or

@@ -53,7 +53,13 @@ func Compare(w io.Writer, results []*check.Result) {
 	// has no such details, so that pointer goes.
 	dropPointer := strings.NewReplacer(", see below.", ".", " See below.", "")
 	for _, r := range results {
-		fmt.Fprintln(w, wrap(r.Repository+": "+dropPointer.Replace(r.Verdict), 80, "  "))
+		line := r.Repository + ": " + dropPointer.Replace(r.Verdict)
+		// compare prints no limits, so the hint about a rename goes here.
+		if r.RenameSuspected {
+			line += fmt.Sprintf(" GH Archive has no stars for it on some busy days, so it may have had another name then. "+
+				"If it did, add `--former-name %s=OLD-OWNER/OLD-NAME`.", r.Repository)
+		}
+		fmt.Fprintln(w, wrap(line, 80, "  "))
 	}
 }
 

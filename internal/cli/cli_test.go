@@ -596,16 +596,90 @@ func TestPartlyCheckedLowShowsItsCoverage(t *testing.T) {
 	}
 
 	// In compare, the fully checked repo and the partly checked one differ
-	// right next to the risk.
+	// right next to the risk, and the rename hint says what to add.
 	out = run(t, services, "compare", flagged, "junegunn/fzf", "--cache-dir", t.TempDir())
 	table := strings.Join(strings.Fields(out.stdout), " ")
 	for _, want := range []string{
 		"flagged_a/repo 65,143 high 3 of 3 days unusual pattern",
 		"junegunn/fzf 83,796 low 1 of 3 days no unusual timing",
+		"If it did, add `--former-name junegunn/fzf=OLD-OWNER/OLD-NAME`.",
 	} {
 		if !strings.Contains(table, want) {
 			t.Errorf("compare is missing %q:\n%s", want, out.stdout)
 		}
+	}
+}
+
+func TestCompareTakesFormerNames(t *testing.T) {
+	// fzf was called old/fzf: GitHub forwards the old name, and GH Archive
+	// has fzf's busy days only under it.
+	gh, seen := fakeRenamedGitHub(t, map[string]string{"old/fzf": "junegunn/fzf"}, flagged, "junegunn/fzf")
+	underOldName := fixtureArchive(t, "junegunn/fzf")
+	archive := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		body, _ := io.ReadAll(req.Body)
+		if !strings.Contains(string(body), "'old/fzf'") {
+			io.WriteString(w, `{"data":[["0","0","0","61000","7000"]]}`)
+			return
+		}
+		proxy, _ := http.NewRequest(http.MethodPost, underOldName.URL, bytes.NewReader(body))
+		res, err := http.DefaultClient.Do(proxy)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		defer res.Body.Close()
+		io.Copy(w, res.Body)
+	}))
+	defer archive.Close()
+	services := Services{GitHubURL: gh.URL, ArchiveURL: archive.URL}
+	decode := func(out runResult) comparison {
+		t.Helper()
+		var c comparison
+		if err := json.Unmarshal([]byte(out.stdout), &c); err != nil {
+			t.Fatalf("exit %d: %v\n%s", out.code, err, out.stderr)
+		}
+		return c
+	}
+
+	// The repo name before = is matched like GitHub matches names, and the
+	// old name can be a URL.
+	for _, value := range []string{"junegunn/fzf=old/fzf", "JuneGunn/FZF=https://github.com/old/fzf"} {
+		c := decode(run(t, services, "compare", flagged, "junegunn/fzf", "--former-name", value, "--json", "--cache-dir", t.TempDir()))
+		if len(c.Repositories) != 2 || len(c.Failed) != 0 {
+			t.Fatalf("%s: %+v", value, c)
+		}
+		if r := c.Repositories[0]; len(r.FormerNames) != 0 {
+			t.Errorf("%s: %s got former names %v", value, r.Repository, r.FormerNames)
+		}
+		if r := c.Repositories[1]; len(r.FormerNames) != 1 || r.FormerNames[0] != "old/fzf" || r.AccountsChecked != "all" || r.RenameSuspected {
+			t.Errorf("%s: former names %v, accounts %s, rename suspected %v", value, r.FormerNames, r.AccountsChecked, r.RenameSuspected)
+		}
+	}
+
+	// A name GitHub does not forward to the repo stops that repo's check,
+	// the same as in check. The other repo is still compared, and the exit
+	// code says what went wrong.
+	out := run(t, services, "compare", flagged, "junegunn/fzf", "--former-name", "junegunn/fzf=nobody/nothing", "--json", "--cache-dir", t.TempDir())
+	c := decode(out)
+	if out.code != 1 || len(c.Repositories) != 1 || len(c.Failed) != 1 ||
+		!strings.Contains(c.Failed[0].Error, "--former-name nobody/nothing: GitHub has no repo by that name") {
+		t.Errorf("exit %d: %+v", out.code, c)
+	}
+
+	// Mistakes in the flag stop before any request.
+	*seen = nil
+	for _, value := range []string{"old/fzf", "other/repo=old/fzf", "junegunn/fzf=not a repo"} {
+		out := run(t, services, "compare", flagged, "junegunn/fzf", "--former-name", value, "--cache-dir", t.TempDir())
+		if out.code != 1 || !strings.Contains(out.stderr, "--former-name") {
+			t.Errorf("%s: exit %d, stderr %q", value, out.code, out.stderr)
+		}
+	}
+	out = run(t, services, "compare", flagged, "junegunn/fzf", "--former-name", "junegunn/fzf=old/fzf", "--no-archive", "--cache-dir", t.TempDir())
+	if out.code != 1 || !strings.Contains(out.stderr, "does nothing with --no-archive") {
+		t.Errorf("--no-archive: exit %d, stderr %q", out.code, out.stderr)
+	}
+	if len(*seen) != 0 {
+		t.Errorf("flag mistakes sent requests: %v", *seen)
 	}
 }
 
