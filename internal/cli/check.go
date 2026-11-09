@@ -28,7 +28,8 @@ func checkCommand(services Services) *rungrad.Command {
 			"help when a repo is too new for StarTrust to judge, but they never change the risk.\n\n" +
 			"You need no setup. Without a token, GitHub allows 60 requests an hour, which is enough\n" +
 			"for one or two checks. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the\n" +
-			"GitHub CLI, StarTrust uses that token.\n\n" +
+			"GitHub CLI, StarTrust uses that token. The last line of the report says which one it\n" +
+			"used. Add --no-token to check without one.\n\n" +
 			"Maintainers can add --deep to compare the profiles of the people who starred their repo.",
 		Args: oneArg("check takes one repo, such as junegunn/fzf; use `startrust compare` for several"),
 		Examples: []string{
@@ -37,6 +38,7 @@ func checkCommand(services Services) *rungrad.Command {
 			"startrust check owner/repo --markdown --out stars.md",
 			"startrust check owner/repo --json",
 			"startrust check owner/repo --fail-on high",
+			"startrust check owner/repo --no-token",
 		},
 		OutputModes: []string{rungrad.OutputModeHuman, rungrad.OutputModeJSON},
 		Related:     []string{"startrust compare", "startrust report", "startrust badge"},

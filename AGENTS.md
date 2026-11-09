@@ -51,6 +51,14 @@ token from `GITHUB_TOKEN` or `GH_TOKEN`, or the GitHub CLI login, when one
 is there. Never ask the user to paste a token into the chat, and never
 print one.
 
+`sources.token_source` in the JSON says which token the check used:
+`GITHUB_TOKEN`, `GH_TOKEN`, `gh` or `none`. `gh` means StarTrust got it from
+`gh auth token`. The GitHub CLI can find a login in the system keyring even
+when `gh auth status` reports none, for example when HOME points to an
+empty folder. If the user wants a check without any token, add
+`--no-token`. StarTrust reads no config file, so these are the only places
+a token can come from.
+
 Without a token GitHub allows 60 requests an hour. One check of an old repo
 can use 20 or more. If the command exits with code 6, the limit is used
 up. Tell the user when it resets (the message says) and that `gh auth

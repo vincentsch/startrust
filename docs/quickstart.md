@@ -48,7 +48,8 @@ repo's age, plus two more for the repo and its recent issues. So a
 ten-year-old repo needs about 20. StarTrust prints the estimate before it
 starts. To get 5,000 requests an hour, log in with the GitHub CLI (`gh auth
 login`) or set `GITHUB_TOKEN`. StarTrust uses the token only to read from
-GitHub, and it never prints it.
+GitHub, and it never prints it. The last line of the report says which
+token the check used, and `--no-token` checks without one.
 
 ## Read the result
 

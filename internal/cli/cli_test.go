@@ -530,21 +530,82 @@ func TestRejectedTokenFallsBackToAnonymous(t *testing.T) {
 		w.Write([]byte(strings.ReplaceAll(string(body), fixtures.URL, "http://"+req.Host)))
 	}))
 	defer server.Close()
-	services := Services{GitHubURL: server.URL, FindToken: func(context.Context) github.Token { return github.Token{Value: "expired"} }}
+	services := Services{GitHubURL: server.URL, FindToken: func(context.Context) github.Token { return github.Token{Value: "expired", Source: "GH_TOKEN"} }}
 	out := run(t, services, "check", "junegunn/fzf", "--no-archive", "--cache-dir", t.TempDir())
-	if out.code != 0 || !strings.Contains(out.stdout, "rejected the token") {
+	// The report names the token that failed and says the check ran
+	// without one.
+	if out.code != 0 || !strings.Contains(out.stdout, "GitHub rejected the token in GH_TOKEN (HTTP 401)") ||
+		!strings.Contains(out.stdout, "Set a new token in GH_TOKEN") || !strings.Contains(out.stdout, "Used no GitHub token") {
 		t.Errorf("exit %d\n%s%s", out.code, out.stdout, out.stderr)
+	}
+	out = run(t, services, "check", "junegunn/fzf", "--no-archive", "--json", "--cache-dir", t.TempDir())
+	var r check.Result
+	if err := json.Unmarshal([]byte(out.stdout), &r); err != nil || r.Sources.TokenSource != "none" || r.Sources.TokenProblem == "" {
+		t.Errorf("token_source %q, token_problem %q: %v", r.Sources.TokenSource, r.Sources.TokenProblem, err)
+	}
+}
+
+func TestReportSaysWhichTokenWasUsed(t *testing.T) {
+	gh, _ := fakeGitHub(t, "vincentsch/explainroo")
+	for _, tc := range []struct {
+		source, words string
+	}{
+		{"GITHUB_TOKEN", "Used the token in GITHUB_TOKEN."},
+		{"GH_TOKEN", "Used the token in GH_TOKEN."},
+		{"gh", "Used your GitHub CLI login, 5,000 requests an hour."},
+		{"", "Used no GitHub token, 60 requests an hour."},
+	} {
+		token := github.Token{Source: tc.source}
+		if tc.source != "" {
+			token.Value = "token-from-" + tc.source
+		}
+		services := Services{GitHubURL: gh.URL, FindToken: func(context.Context) github.Token { return token }}
+		out := run(t, services, "check", "vincentsch/explainroo", "--no-archive", "--cache-dir", t.TempDir())
+		if text := strings.Join(strings.Fields(out.stdout), " "); !strings.Contains(text, tc.words) {
+			t.Errorf("%q: the report does not say %q:\n%s", tc.source, tc.words, out.stdout)
+		}
+		out = run(t, services, "check", "vincentsch/explainroo", "--no-archive", "--json", "--cache-dir", t.TempDir())
+		want := tc.source
+		if want == "" {
+			want = "none"
+		}
+		if !strings.Contains(out.stdout, `"token_source": "`+want+`"`) || strings.Contains(out.stdout, `"token":`) {
+			t.Errorf("%q: JSON sources:\n%s", tc.source, out.stdout)
+		}
+	}
+}
+
+func TestNoTokenNeverLooksForOne(t *testing.T) {
+	gh, seen := fakeGitHub(t, "vincentsch/explainroo")
+	services := Services{GitHubURL: gh.URL, FindToken: func(context.Context) github.Token {
+		t.Error("--no-token must not look for a token")
+		return github.Token{Value: "secret", Source: "gh"}
+	}}
+	out := run(t, services, "check", "vincentsch/explainroo", "--no-archive", "--no-token", "--json", "--cache-dir", t.TempDir())
+	var r check.Result
+	if err := json.Unmarshal([]byte(out.stdout), &r); err != nil || r.Sources.TokenSource != "none" {
+		t.Errorf("exit %d, token_source %q: %v\n%s", out.code, r.Sources.TokenSource, err, out.stderr)
+	}
+	out = run(t, services, "compare", "vincentsch/explainroo", "vincentsch/explainroo", "--no-archive", "--no-token", "--json", "--cache-dir", t.TempDir())
+	if out.code != 0 || strings.Contains(out.stdout, `"token_source": "gh"`) {
+		t.Errorf("compare --no-token: exit %d\n%s", out.code, out.stdout)
+	}
+	// --deep needs a token, so the two flags stop before any request.
+	before := len(*seen)
+	out = run(t, services, "check", "vincentsch/explainroo", "--deep", "--no-token", "--cache-dir", t.TempDir())
+	if out.code != 1 || !strings.Contains(out.stderr, "cannot run with --no-token") || len(*seen) != before {
+		t.Errorf("exit %d, %d requests, stderr %q", out.code, len(*seen)-before, out.stderr)
 	}
 }
 
 func TestCompareCountsRequestsPerRepo(t *testing.T) {
-	gh, _ := fakeGitHub(t, flagged, "junegunn/fzf")
+	gh, _ := fakeGitHub(t, flagged, "vincentsch/explainroo")
 	services := Services{GitHubURL: gh.URL}
-	alone := run(t, services, "check", "junegunn/fzf", "--no-archive", "--json", "--cache-dir", t.TempDir())
+	alone := run(t, services, "check", "vincentsch/explainroo", "--no-archive", "--json", "--cache-dir", t.TempDir())
 	var single check.Result
 	json.Unmarshal([]byte(alone.stdout), &single)
 
-	out := run(t, services, "compare", flagged, "junegunn/fzf", "--no-archive", "--json", "--cache-dir", t.TempDir())
+	out := run(t, services, "compare", flagged, "vincentsch/explainroo", "--no-archive", "--json", "--cache-dir", t.TempDir())
 	var both comparison
 	if err := json.Unmarshal([]byte(out.stdout), &both); err != nil || len(both.Repositories) != 2 {
 		t.Fatalf("compare --json: %v\n%s", err, out.stdout)
@@ -614,10 +675,11 @@ func TestRejectedTokenAndUsedUpLimitSayBoth(t *testing.T) {
 		io.WriteString(w, `{"message":"API rate limit exceeded"}`)
 	}))
 	defer server.Close()
-	services := Services{GitHubURL: server.URL, FindToken: func(context.Context) github.Token { return github.Token{Value: "expired"} }}
+	services := Services{GitHubURL: server.URL, FindToken: func(context.Context) github.Token { return github.Token{Value: "expired", Source: "gh"} }}
 	out := run(t, services, "check", "junegunn/fzf", "--no-archive", "--cache-dir", t.TempDir())
 	// The usual advice to set a token would be wrong: the user did.
-	if out.code != 6 || !strings.Contains(out.stderr, "GitHub rejected your token") || strings.Contains(out.stderr, "set GITHUB_TOKEN or run") {
+	if out.code != 6 || !strings.Contains(out.stderr, "GitHub rejected the token of your GitHub CLI login") ||
+		!strings.Contains(out.stderr, "Run `gh auth login` to refresh it") || strings.Contains(out.stderr, "set GITHUB_TOKEN or run") {
 		t.Errorf("exit %d, stderr %q", out.code, out.stderr)
 	}
 }

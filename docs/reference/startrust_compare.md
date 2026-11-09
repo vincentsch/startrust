@@ -25,6 +25,7 @@ startrust compare a/one b/two --json
 - `--explain` Look for Hacker News posts and releases near the busiest days. Type: `bool`. Default: `false`.
 - `--max-requests` Stop after this many GitHub requests for all repos together and report what was read. Type: `int`. Default: `1000`.
 - `--no-archive` Leave out the account check in GH Archive (the verdict then rests on the timing of the stars). Type: `bool`. Default: `false`.
+- `--no-token` Check without a GitHub token, even when one is set or you are logged in with the GitHub CLI. Type: `bool`. Default: `false`.
 
 ## Output
 

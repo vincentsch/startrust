@@ -51,5 +51,5 @@ Limits
   Since June 2025 it has missed a growing share of all stars, and since June
   2026 almost all of them.
 
-Checked <time> using 25 GitHub requests and 3 GH Archive queries,
-without a GitHub token. Add --details for the full evidence.
+Checked <time> using 25 GitHub requests and 3 GH Archive queries.
+Used no GitHub token, 60 requests an hour. Add --details for the full evidence.

@@ -38,5 +38,5 @@ Limits
 - GH Archive has too few records to check the accounts on 2026-10-01 (5 of 261
   stars).
 
-Checked <time> using 3 GitHub requests and 1 GH Archive query,
-without a GitHub token. Add --details for the full evidence.
+Checked <time> using 3 GitHub requests and 1 GH Archive query.
+Used no GitHub token, 60 requests an hour. Add --details for the full evidence.

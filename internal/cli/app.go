@@ -103,30 +103,37 @@ func usageError(format string, args ...any) error {
 
 // runner builds a check runner from the command's flags.
 func runner(f *rungrad.Factory, cmd *cobra.Command, services Services) (*check.Runner, error) {
-	var token github.Token
-	if services.FindToken != nil {
-		token = services.FindToken(cmd.Context())
-	} else {
-		token = github.FindToken(cmd.Context(), services.Getenv)
-	}
-	f.RegisterSecret(token.Value)
 	maxRequests, _ := cmd.Flags().GetInt("max-requests")
 	if maxRequests < 1 {
 		return nil, usageError("--max-requests must be at least 1")
 	}
+	noToken, _ := cmd.Flags().GetBool("no-token")
+	deep, _ := cmd.Flags().GetBool("deep")
+	if noToken && deep {
+		return nil, usageError("--deep needs a token with push access to the repo, so it cannot run with --no-token")
+	}
+	// With --no-token, StarTrust does not even ask the GitHub CLI.
+	var token github.Token
+	switch {
+	case noToken:
+	case services.FindToken != nil:
+		token = services.FindToken(cmd.Context())
+	default:
+		token = github.FindToken(cmd.Context(), services.Getenv)
+	}
+	f.RegisterSecret(token.Value)
 	run := &check.Runner{
-		GitHub:   &github.Client{BaseURL: services.GitHubURL, Token: token.Value, MaxRequests: maxRequests, UserAgent: "startrust/" + version.Version},
-		Now:      services.Now,
-		Progress: newProgress(f, services),
+		GitHub:      &github.Client{BaseURL: services.GitHubURL, Token: token.Value, MaxRequests: maxRequests, UserAgent: "startrust/" + version.Version},
+		TokenSource: token.Source,
+		Deep:        deep,
+		Now:         services.Now,
+		Progress:    newProgress(f, services),
 	}
 	if noArchive, _ := cmd.Flags().GetBool("no-archive"); !noArchive {
 		run.Archive = &archive.Client{Endpoint: services.ArchiveURL}
 	}
 	if explainFlag, _ := cmd.Flags().GetBool("explain"); explainFlag {
 		run.HN = &explain.HN{Endpoint: services.HNURL}
-	}
-	if deep, err := cmd.Flags().GetBool("deep"); err == nil {
-		run.Deep = deep
 	}
 	store, err := openCache(cmd)
 	if err != nil {
@@ -140,6 +147,7 @@ func addRunFlags(cmd *cobra.Command) {
 	cmd.Flags().Bool("no-archive", false, "Leave out the account check in GH Archive (the verdict then rests on the timing of the stars)")
 	cmd.Flags().Bool("explain", false, "Look for Hacker News posts and releases near the busiest days")
 	cmd.Flags().Int("max-requests", 1000, "Stop after this many GitHub requests and report what was read")
+	cmd.Flags().Bool("no-token", false, "Check without a GitHub token, even when one is set or you are logged in with the GitHub CLI")
 	addCacheFlag(cmd)
 }
 

@@ -124,9 +124,11 @@ type Sources struct {
 	Stargazers string `json:"stargazers"` // "listed", "partial", "hidden" or "off"
 	Explain    string `json:"explain"`    // "used", "partial" or "off"
 
-	GitHubRequests  int    `json:"github_requests"`
-	ArchiveQueries  int    `json:"archive_queries"`
-	Token           bool   `json:"token"`
+	GitHubRequests int `json:"github_requests"`
+	ArchiveQueries int `json:"archive_queries"`
+	// TokenSource says which GitHub token the check used: "GITHUB_TOKEN",
+	// "GH_TOKEN", "gh" (the GitHub CLI login) or "none".
+	TokenSource     string `json:"token_source"`
 	ArchiveProblem  string `json:"archive_problem,omitempty"`
 	ExplainProblem  string `json:"explain_problem,omitempty"`
 	HistoryProblem  string `json:"history_problem,omitempty"`

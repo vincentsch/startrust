@@ -64,11 +64,12 @@ func Text(w io.Writer, r *check.Result, details bool) {
 	}
 
 	fmt.Fprintln(w)
-	footer := fmt.Sprintf("Checked %s using %s", r.CheckedAt.Local().Format("2006-01-02 15:04 MST"), requestsText(r))
+	footer := fmt.Sprintf("Checked %s using %s.", r.CheckedAt.Local().Format("2006-01-02 15:04 MST"), requestsText(r))
+	if token := tokenText(r.Sources.TokenSource); token != "" {
+		footer += " " + token
+	}
 	if !details {
-		footer += ". Add --details for the full evidence."
-	} else {
-		footer += "."
+		footer += " Add --details for the full evidence."
 	}
 	fmt.Fprintln(w, wrap(footer, 80, ""))
 }
@@ -260,10 +261,22 @@ func requestsText(r *check.Result) string {
 	default:
 		text += fmt.Sprintf(" and %d GH Archive queries", r.Sources.ArchiveQueries)
 	}
-	if !r.Sources.Token {
-		text += ", without a GitHub token"
-	}
 	return text
+}
+
+// tokenText says which GitHub token the check used. A token can come from
+// a place the user forgot about, such as a GitHub CLI login in the system
+// keyring, so the report always names it.
+func tokenText(source string) string {
+	switch source {
+	case "GITHUB_TOKEN", "GH_TOKEN":
+		return "Used the token in " + source + "."
+	case "gh":
+		return "Used your GitHub CLI login, 5,000 requests an hour."
+	case "none":
+		return "Used no GitHub token, 60 requests an hour."
+	}
+	return ""
 }
 
 func writeDetails(w io.Writer, r *check.Result) {

@@ -70,7 +70,7 @@
     "explain": "off",
     "github_requests": 3,
     "archive_queries": 1,
-    "token": false
+    "token_source": "none"
   },
   "details": {
     "history": {

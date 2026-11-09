@@ -6,7 +6,7 @@ Check reads the repo's daily star counts from GitHub and draws them as a chart. 
 
 Below the verdict you see the repo's activity, such as its forks and recent issues. They help when a repo is too new for StarTrust to judge, but they never change the risk.
 
-You need no setup. Without a token, GitHub allows 60 requests an hour, which is enough for one or two checks. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the GitHub CLI, StarTrust uses that token.
+You need no setup. Without a token, GitHub allows 60 requests an hour, which is enough for one or two checks. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the GitHub CLI, StarTrust uses that token. The last line of the report says which one it used. Add --no-token to check without one.
 
 Maintainers can add --deep to compare the profiles of the people who starred their repo.
 
@@ -24,6 +24,7 @@ startrust check https://github.com/charmbracelet/glow --details
 startrust check owner/repo --markdown --out stars.md
 startrust check owner/repo --json
 startrust check owner/repo --fail-on high
+startrust check owner/repo --no-token
 ```
 
 ## Flags
@@ -36,6 +37,7 @@ startrust check owner/repo --fail-on high
 - `--markdown` Write a Markdown report for sharing. Type: `bool`. Default: `false`.
 - `--max-requests` Stop after this many GitHub requests and report what was read. Type: `int`. Default: `1000`.
 - `--no-archive` Leave out the account check in GH Archive (the verdict then rests on the timing of the stars). Type: `bool`. Default: `false`.
+- `--no-token` Check without a GitHub token, even when one is set or you are logged in with the GitHub CLI. Type: `bool`. Default: `false`.
 - `--out` Write the report to this file instead of the terminal. Type: `string`. Default: none.
 
 ## Output

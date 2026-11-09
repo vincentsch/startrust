@@ -40,13 +40,16 @@ func (silent) Note(string)   {}
 // Runner checks repos. It needs GitHub; leave Archive or HN nil to leave
 // those lookups out.
 type Runner struct {
-	GitHub   *github.Client
-	Archive  *archive.Client
-	HN       *explain.HN
-	Cache    *cache.Store
-	Deep     bool
-	Progress Progress
-	Now      func() time.Time
+	GitHub *github.Client
+	// TokenSource says where GitHub.Token came from: "GITHUB_TOKEN",
+	// "GH_TOKEN" or "gh".
+	TokenSource string
+	Archive     *archive.Client
+	HN          *explain.HN
+	Cache       *cache.Store
+	Deep        bool
+	Progress    Progress
+	Now         func() time.Time
 }
 
 func (r *Runner) progress() Progress {
@@ -78,12 +81,12 @@ func (r *Runner) Run(ctx context.Context, name string) (*Result, error) {
 		// An expired token should not stop a check of public data.
 		tokenRejected = true
 		r.GitHub.Token = ""
-		progress.Note("GitHub rejected the token, so this check runs without one (60 requests an hour).")
+		progress.Note(fmt.Sprintf("GitHub rejected %s, so this check runs without a token (60 requests an hour).", tokenName(r.TokenSource)))
 		repo, err = r.GitHub.Repo(ctx, name)
 	}
 	if err != nil {
 		if tokenRejected && github.IsKind(err, github.ErrRateLimited) {
-			return nil, tokenAndLimitError{err}
+			return nil, tokenAndLimitError{err, r.TokenSource}
 		}
 		return nil, err
 	}
@@ -104,10 +107,13 @@ func (r *Runner) Run(ctx context.Context, name string) (*Result, error) {
 	analysis := stars.Analyze(series)
 
 	result := newResult(repo, series, analysis, now)
-	result.Sources.Token = r.GitHub.Token != ""
+	result.Sources.TokenSource = "none"
+	if r.GitHub.Token != "" {
+		result.Sources.TokenSource = r.TokenSource
+	}
 	if tokenRejected {
-		result.Sources.TokenProblem = "GitHub rejected the token (HTTP 401), so this check ran without one. " +
-			"Refresh it with `gh auth login` or a new GITHUB_TOKEN"
+		result.Sources.TokenProblem = fmt.Sprintf("GitHub rejected %s (HTTP 401), so this check ran without a token. %s",
+			tokenName(r.TokenSource), tokenAdvice(r.TokenSource))
 	}
 	if historyErr != nil {
 		result.HistoryPartial = true
@@ -168,15 +174,41 @@ func (r *Runner) Run(ctx context.Context, name string) (*Result, error) {
 // tokenAndLimitError explains a rate limit that hit after GitHub rejected
 // the token: the usual advice to set a token would be wrong, because the
 // user did.
-type tokenAndLimitError struct{ err error }
+type tokenAndLimitError struct {
+	err    error
+	source string
+}
 
 func (e tokenAndLimitError) Error() string {
-	msg := "GitHub rejected your token (HTTP 401), and without a token its limit of 60 requests an hour is used up"
+	msg := fmt.Sprintf("GitHub rejected %s (HTTP 401), and without a token its limit of 60 requests an hour is used up", tokenName(e.source))
 	var apiErr *github.Error
 	if errors.As(e.err, &apiErr) && !apiErr.ResetAt.IsZero() {
 		msg += "; it resets at " + apiErr.ResetAt.Local().Format("15:04")
 	}
-	return msg + ". Refresh the token with `gh auth login` or set a new GITHUB_TOKEN"
+	return msg + ". " + tokenAdvice(e.source)
+}
+
+// tokenName says where a token came from, so a message about it points at
+// the right place.
+func tokenName(source string) string {
+	switch source {
+	case "GITHUB_TOKEN", "GH_TOKEN":
+		return "the token in " + source
+	case "gh":
+		return "the token of your GitHub CLI login"
+	}
+	return "the token"
+}
+
+// tokenAdvice says how to replace a token GitHub rejected.
+func tokenAdvice(source string) string {
+	switch source {
+	case "GITHUB_TOKEN", "GH_TOKEN":
+		return "Set a new token in " + source
+	case "gh":
+		return "Run `gh auth login` to refresh it"
+	}
+	return "Refresh it with `gh auth login` or a new GITHUB_TOKEN"
 }
 
 func (e tokenAndLimitError) Unwrap() error { return e.err }

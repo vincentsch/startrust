@@ -42,5 +42,5 @@ Limits
 - The accounts were not checked (--no-archive), so the verdict rests on the
   timing of the stars.
 
-Checked <time> using 6 GitHub requests, without a GitHub token.
-Add --details for the full evidence.
+Checked <time> using 6 GitHub requests. Used no GitHub token, 60
+requests an hour. Add --details for the full evidence.

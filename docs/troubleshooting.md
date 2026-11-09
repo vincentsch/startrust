@@ -16,10 +16,19 @@ a report for the part it read and says which dates it covers.
 
 ## "GitHub rejected the token"
 
-Your GitHub token has expired or was revoked. StarTrust found it in
-`GITHUB_TOKEN` or `GH_TOKEN`, or in your GitHub CLI login. StarTrust
-continues without it and says so under Limits. Run `gh auth login` again
-or create a new token.
+Your GitHub token has expired or was revoked. The message says where
+StarTrust found it: in `GITHUB_TOKEN`, in `GH_TOKEN` or in your GitHub CLI
+login. StarTrust continues without it and says so under Limits. Run `gh
+auth login` again or set a new token. To stop using it right away, add
+`--no-token`.
+
+## The report used a token you did not expect
+
+The last line of the report says which token the check used. "Used your
+GitHub CLI login" means that `gh auth token` gave StarTrust a token. The
+GitHub CLI also finds a login in your system keyring, even when `gh auth
+status` reports none. This happens, for example, in a shell whose HOME
+points to an empty folder. Add `--no-token` to check without it.
 
 ## "GitHub has no public repository called ..."
 

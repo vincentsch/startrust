@@ -62,7 +62,7 @@ This is the layout without `--details`, from a check of fzf
     "explain": "off",
     "github_requests": 25,
     "archive_queries": 3,
-    "token": true
+    "token_source": "gh"
   }
 }
 ```
@@ -138,6 +138,7 @@ means anything:
 | `sources.history` | `complete`, `partial` or `unavailable`. |
 | `sources.archive` | `used`, `partial`, `unavailable`, `not_needed` (no day was big enough) or `off` (`--no-archive`). |
 | `sources.stargazers` | `listed`, `partial`, `hidden` or `off` (without `--deep`). |
+| `sources.token_source` | The GitHub token the check used: `GITHUB_TOKEN`, `GH_TOKEN`, `gh` (the token that `gh auth token` gave, from your GitHub CLI login) or `none`. It is `none` with `--no-token`, and after GitHub rejected the token. |
 | `sources.*_problem` | The reason a source was partial or unavailable. |
 
 ## With --details

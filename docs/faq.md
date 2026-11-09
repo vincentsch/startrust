@@ -11,9 +11,19 @@ stars, sold in packages or traded between accounts.
 
 No. You can check any public repo without a token. A token only raises
 GitHub's limit from 60 to 5,000 requests an hour. StarTrust looks for one
-in `GITHUB_TOKEN` or `GH_TOKEN`, or asks the GitHub CLI (`gh auth token`).
-It uses the token only to read from GitHub, and it never prints or stores
-it.
+in `GITHUB_TOKEN` first, then in `GH_TOKEN`, and then asks the GitHub CLI
+(`gh auth token`). It uses the token only to read from GitHub, and it never
+prints or stores it.
+
+The last line of the report says which token the check used, such as "Used
+your GitHub CLI login". In the JSON, `sources.token_source` says the same.
+Add `--no-token` to check without a token, even when one is set.
+
+## Does StarTrust have a config file?
+
+No. You set everything with flags, and the token comes from the places
+above. `--config` shows up in the help because every command accepts it,
+but StarTrust ignores it. Saved checks go to the [cache](#where-is-the-cache).
 
 ## What does StarTrust send where?
 
