@@ -4,7 +4,7 @@ https://github.com/vincentsch/explainroo
 Too new to judge. The repo is 32 days old, and timing alone cannot tell a launch
 from a star campaign. GH Archive has too few records of the busiest day to check
 the accounts. So far it has 45 forks and 40 issues and pull requests, see below.
-Risk: unknown
+Risk: unknown, accounts checked on 0 of 1 busy day
 
 Activity
   45 forks

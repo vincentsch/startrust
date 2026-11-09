@@ -5,7 +5,7 @@ Unusual star pattern. On 3 of the busiest days, 41% to 90% of the accounts that
 starred had no other public stars recorded in GH Archive within 30 days. Bought
 or traded stars often look like this, so look closer before you trust the star
 count.
-Risk: high
+Risk: high, accounts checked on 3 of 3 busy days
 
 Activity
   3,443 forks (53 per 1,000 stars)

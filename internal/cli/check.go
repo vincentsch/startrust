@@ -150,7 +150,7 @@ func writeResult(f *rungrad.Factory, cmd *cobra.Command, result *check.Result) e
 	if err := cache.WriteFile(out, buf.Bytes()); err != nil {
 		return rungrad.NewError(rungrad.ExitAPI, fmt.Sprintf("cannot write %s: %v", out, err))
 	}
-	f.Infof("Wrote %s (risk %s)", out, result.Risk)
+	f.Infof("Wrote %s (risk %s)", out, result.RiskText())
 	return nil
 }
 
@@ -195,5 +195,5 @@ func failOnError(f *rungrad.Factory, result *check.Result, failOn string) error 
 	if failOn == "" || check.RiskRank(result.Risk) < check.RiskRank(failOn) {
 		return nil
 	}
-	return rungrad.NewError(ExitPolicy, fmt.Sprintf("risk is %s for %s (--fail-on %s)", result.Risk, result.Repository, failOn))
+	return rungrad.NewError(ExitPolicy, fmt.Sprintf("%s has risk %s (--fail-on %s)", result.Repository, result.RiskText(), failOn))
 }

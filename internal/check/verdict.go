@@ -157,7 +157,8 @@ func Decide(r *Result, a stars.Analysis) {
 	r.Burst = a.Burst
 
 	targets := AccountTargets(r.Days, a.Spikes)
-	r.AccountsChecked = accountsChecked(r.Days, targets)
+	r.DaysToCheck, r.DaysChecked = len(targets), countedDays(r.Days, targets)
+	r.AccountsChecked = accountsChecked(r.DaysChecked, r.DaysToCheck)
 	r.RenameSuspected = len(daysWithoutRecord(r.Days)) > 0
 	for i := range r.Days {
 		r.Days[i].Judged = r.Days[i].Counts()
@@ -313,19 +314,25 @@ func Decide(r *Result, a stars.Analysis) {
 	r.Limits = append(r.Limits, baseLimits(r, targets)...)
 }
 
-// accountsChecked says how many of the days that needed an account check
-// got one that counts: "all", "some" or "none".
-func accountsChecked(days []Day, targets []int) string {
+// countedDays counts the days that needed an account check and got one
+// that counts.
+func countedDays(days []Day, targets []int) int {
 	counted := 0
 	for _, i := range targets {
 		if days[i].Counts() {
 			counted++
 		}
 	}
+	return counted
+}
+
+// accountsChecked says how many of the days that needed an account check
+// got one that counts: "all", "some" or "none".
+func accountsChecked(counted, needed int) string {
 	switch {
 	case counted == 0:
 		return "none"
-	case counted < len(targets):
+	case counted < needed:
 		return "some"
 	}
 	return "all"

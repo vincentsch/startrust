@@ -13,15 +13,19 @@ import (
 // Compare writes several results side by side: a table of the key numbers,
 // their star history on one shared timeline, and each verdict.
 func Compare(w io.Writer, results []*check.Result) {
-	// The result column is the headline, which also says whether the
-	// accounts were checked ("no unusual pattern" or "no unusual timing").
-	rows := [][]string{{"Repo", "Stars", "Risk", "Result", "Biggest day"}}
+	// The column next to the risk says on how many busy days the accounts
+	// were checked, so a low risk with unchecked days stands out.
+	rows := [][]string{{"Repo", "Stars", "Risk", "Accounts checked", "Result", "Biggest day"}}
 	for _, r := range results {
+		checked := "-"
+		if r.DaysToCheck > 0 {
+			checked = fmt.Sprintf("%d of %s", r.DaysChecked, plural(r.DaysToCheck, "day", "days"))
+		}
 		biggest := "-"
 		if b := r.BiggestDay; b != nil {
 			biggest = check.Number(b.Stars) + " on " + b.Day.Format("2006-01-02")
 		}
-		rows = append(rows, []string{r.Repository, check.Number(r.Stars), r.Risk, r.Headline, biggest})
+		rows = append(rows, []string{r.Repository, check.Number(r.Stars), r.Risk, checked, r.Headline, biggest})
 	}
 	widths := columnWidths(rows)
 	for i, row := range rows {

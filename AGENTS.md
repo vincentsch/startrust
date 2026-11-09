@@ -75,6 +75,9 @@ Read these fields from the JSON, and only these:
 - `verdict`: a few sentences that describe what the check saw. Quote it.
 - `accounts_checked`: `all`, `some` or `none`. With `none`, the verdict
   rests on the timing of the stars.
+- `days_checked` and `days_to_check`: on how many of the busy days that
+  needed it the account check counts. Always give them with the risk, as
+  the report does, such as "low, accounts checked on 1 of 3 busy days".
 - `rename_suspected`: `true` when GH Archive has no stars at all for the
   repo on a busy day from before June 2026. The repo may have had another
   name then. Follow [step 3](#3-follow-up-on-a-rename) before you explain
@@ -158,9 +161,10 @@ far.
 Tell the user what was found, in plain words, and quote the verdict. Then
 explain the risk level:
 
-- `low`: nothing unusual in what could be checked. If `accounts_checked` is
-  not `all`, say which part was not checked (the verdict and `limits` say
-  why).
+- `low`: nothing unusual in what could be checked. If `days_checked` is
+  smaller than `days_to_check`, this is a weaker result than a fully
+  checked low. Say so, and say which days were not checked (the verdict and
+  `limits` say why).
 - `medium`: the timing looks odd, or a busy day had more one-off accounts
   than usual. Viral repos with a wide audience can look like this. This is
   a reason to look closer. It is not a finding of fraud.

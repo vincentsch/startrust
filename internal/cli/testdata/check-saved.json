@@ -21,6 +21,8 @@
     "GH Archive has too few records to check the accounts on 2026-10-01 (5 of 261 stars)."
   ],
   "accounts_checked": "none",
+  "days_to_check": 1,
+  "days_checked": 0,
   "rename_suspected": false,
   "biggest_day": {
     "day": "2026-10-01T00:00:00Z",

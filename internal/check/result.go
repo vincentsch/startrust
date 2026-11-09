@@ -2,6 +2,7 @@
 package check
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/vincentsch/startrust/internal/archive"
@@ -70,6 +71,12 @@ type Result struct {
 	// checked: "all", "some" or "none". With "none", the verdict rests on
 	// the timing of the stars.
 	AccountsChecked string `json:"accounts_checked"`
+	// DaysToCheck is how many busy days needed an account check, and
+	// DaysChecked how many of them got one that counts (Judged). Reports
+	// show both next to the risk, so a low risk with unchecked days never
+	// reads like a full check.
+	DaysToCheck int `json:"days_to_check"`
+	DaysChecked int `json:"days_checked"`
 	// RenameSuspected is true when GH Archive has no stars at all for the
 	// repo, under any of its names, on a busy day from before June 2026.
 	// The repo may have had another name then, and a limit says what to
@@ -175,4 +182,23 @@ type Details struct {
 func (r Result) Summary() Result {
 	r.Details = nil
 	return r
+}
+
+// Coverage says on how many busy days the account check counts, such as
+// "accounts checked on 1 of 3 busy days". It is empty when no day needed an
+// account check.
+func (r Result) Coverage() string {
+	if r.DaysToCheck == 0 {
+		return ""
+	}
+	return fmt.Sprintf("accounts checked on %d of %s", r.DaysChecked, plural(r.DaysToCheck, "busy day", "busy days"))
+}
+
+// RiskText is the risk with the coverage next to it, such as "low, accounts
+// checked on 1 of 3 busy days".
+func (r Result) RiskText() string {
+	if coverage := r.Coverage(); coverage != "" {
+		return r.Risk + ", " + coverage
+	}
+	return r.Risk
 }

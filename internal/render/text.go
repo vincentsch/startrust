@@ -21,7 +21,7 @@ func Text(w io.Writer, r *check.Result, details bool) {
 	}
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, wrap(r.Verdict, 80, ""))
-	fmt.Fprintf(w, "Risk: %s\n", r.Risk)
+	fmt.Fprintln(w, wrap("Risk: "+r.RiskText(), 80, ""))
 
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Activity")

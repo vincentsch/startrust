@@ -564,6 +564,51 @@ func TestCompare(t *testing.T) {
 	golden(t, "compare.txt", out.stdout)
 }
 
+func TestPartlyCheckedLowShowsItsCoverage(t *testing.T) {
+	// GH Archive has the accounts of fzf's biggest day but none of its
+	// next two. The risk stays low, but it must not look like a full check.
+	answers := map[string]archiveAnswer{}
+	for _, name := range []string{flagged, "junegunn/fzf"} {
+		for _, c := range loadFixture(t, name).Accounts {
+			answers[c.Day.Format("2006-01-02")] = archiveAnswer{c.Archived, c.Checked, c.OneOff, c.WindowRecorded}
+		}
+	}
+	delete(answers, "2023-03-23")
+	delete(answers, "2018-08-31")
+	gh, _ := fakeGitHub(t, flagged, "junegunn/fzf")
+	services := Services{GitHubURL: gh.URL, ArchiveURL: fakeArchive(t, answers).URL}
+
+	var r check.Result
+	out := run(t, services, "check", "junegunn/fzf", "--json", "--cache-dir", t.TempDir())
+	if err := json.Unmarshal([]byte(out.stdout), &r); err != nil {
+		t.Fatalf("exit %d: %v\n%s", out.code, err, out.stderr)
+	}
+	if r.Risk != "low" || r.AccountsChecked != "some" || r.DaysToCheck != 3 || r.DaysChecked != 1 {
+		t.Errorf("risk %s, accounts %s, %d of %d days checked", r.Risk, r.AccountsChecked, r.DaysChecked, r.DaysToCheck)
+	}
+	out = run(t, services, "check", "junegunn/fzf", "--cache-dir", t.TempDir())
+	if !strings.Contains(out.stdout, "\nRisk: low, accounts checked on 1 of 3 busy days\n") {
+		t.Errorf("the report does not show the coverage next to the risk:\n%s", out.stdout)
+	}
+	out = run(t, services, "check", "junegunn/fzf", "--markdown", "--cache-dir", t.TempDir())
+	if !strings.Contains(out.stdout, "Risk: low, accounts checked on 1 of 3 busy days.") {
+		t.Errorf("the Markdown report does not show the coverage:\n%s", out.stdout)
+	}
+
+	// In compare, the fully checked repo and the partly checked one differ
+	// right next to the risk.
+	out = run(t, services, "compare", flagged, "junegunn/fzf", "--cache-dir", t.TempDir())
+	table := strings.Join(strings.Fields(out.stdout), " ")
+	for _, want := range []string{
+		"flagged_a/repo 65,143 high 3 of 3 days unusual pattern",
+		"junegunn/fzf 83,796 low 1 of 3 days no unusual timing",
+	} {
+		if !strings.Contains(table, want) {
+			t.Errorf("compare is missing %q:\n%s", want, out.stdout)
+		}
+	}
+}
+
 func TestCacheListAndPrune(t *testing.T) {
 	gh, _ := fakeGitHub(t, "junegunn/fzf")
 	dir := t.TempDir()

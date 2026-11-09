@@ -5,7 +5,7 @@ Not enough data to judge. Most stars arrived with the launch, and timing alone
 cannot tell a launch from a star campaign. The accounts were not checked
 (--no-archive). It has 4 forks, and 0 issues and pull requests were opened in
 the last 90 days, see below.
-Risk: unknown
+Risk: unknown, accounts checked on 0 of 1 busy day
 
 Activity
   4 forks (3.5 per 1,000 stars)

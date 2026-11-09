@@ -32,6 +32,8 @@ This is the layout without `--details`, from a check of fzf
   "findings": ["Accounts with no other public stars recorded in GH Archive within 30 days: 2% on 2025-07-09, ..."],
   "limits": ["Anyone can star any repo, ..."],
   "accounts_checked": "all",
+  "days_to_check": 3,
+  "days_checked": 3,
   "rename_suspected": false,
   "biggest_day": { "day": "2025-07-09T00:00:00Z", "stars": 223, "...": "..." },
   "unusual_spikes": 0,
@@ -107,6 +109,9 @@ a share that means anything:
   a pass. Read `verdict` and `limits` to see what was missing.
 - `accounts_checked` says whether the accounts behind the busy days were
   checked. With `none`, the verdict rests on the timing of the stars.
+  `days_checked` out of `days_to_check` gives the numbers. Show them with
+  the risk, such as "low, accounts checked on 1 of 3 busy days", because a
+  low risk with fewer days checked is a weaker result.
 - `forks`, `watchers` and `issues_and_prs_90_days` show how much the repo
   is used. They are context and never change the risk. Most repos flagged
   for bought stars had normal numbers here, so normal numbers do not clear
@@ -147,6 +152,8 @@ a share that means anything:
 | `findings` | The evidence behind the verdict, one sentence each. |
 | `limits` | What the check could not see. |
 | `accounts_checked` | `all`, `some` or `none`. It says whether StarTrust could check the accounts behind the busy days that needed it. With `none`, the verdict rests on the timing of the stars. |
+| `days_to_check` | How many busy days needed an account check: up to 3 of the busiest days with at least 50 stars, and the biggest day of each unusual spike. 0 when no day was big enough. |
+| `days_checked` | How many of those days got an account check that counts (`judged` is `true`). The reports print it next to the risk, such as "accounts checked on 1 of 3 busy days". |
 | `rename_suspected` | `true` when GH Archive has no stars at all for the repo, under any of the names it was asked for, on a busy day from before June 2026. GH Archive files stars under the name a repo had at the time, so the repo may have had another name then. A line in `limits` gives the command to run. Since June 2026 GH Archive misses almost every star, so later days never set it. |
 | `biggest_day` | The day with the most stars, laid out like an entry of `days`. It is usually also in `days`. `null` for a repo without stars. |
 | `unusual_spikes` | How many unusual spikes the history has, cleared or not. |

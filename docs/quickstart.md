@@ -57,8 +57,11 @@ token the check used and how many requests were left this hour.
 ## Read the result
 
 The verdict comes right after the header. It describes what the check saw.
-It never says who starred or why. Below it is the risk level, such as
-"Risk: low". The verdict starts with one of these:
+It never says who starred or why. Below it is the risk level, and on how
+many of the busy days StarTrust could check the accounts, such as "Risk:
+low, accounts checked on 3 of 3 busy days". When fewer days were checked,
+the risk rests partly on the timing of the stars, and the verdict says
+which days are missing. The verdict starts with one of these:
 
 - "No unusual pattern" means that StarTrust found no unusual spike and no
   burst, or that the accounts behind them looked like most stargazers.
@@ -154,8 +157,10 @@ startrust compare junegunn/fzf charmbracelet/glow jesseduffield/lazygit
 ```
 
 `compare` checks two to eight repos and puts them in one table, with their
-risk and their biggest day. Below the table it draws their star histories
-on one timeline and prints each verdict.
+risk and their biggest day. The "Accounts checked" column next to the risk
+says on how many busy days the accounts were checked, such as "1 of 3
+days". Below the table it draws their star histories on one timeline and
+prints each verdict.
 
 ## Save and share a report
 
