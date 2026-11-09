@@ -605,6 +605,20 @@ func TestHelpSaysThereIsNoConfigFile(t *testing.T) {
 	}
 }
 
+func TestHelpSaysWhatDryRunDoes(t *testing.T) {
+	// Only cache prune changes anything, so --dry-run matters only there.
+	for _, args := range [][]string{{"--help"}, {"check", "--help"}} {
+		out := run(t, Services{}, args...)
+		if !strings.Contains(out.stdout, "--dry-run         Show what cache prune would delete without deleting it (the other commands only read)") {
+			t.Errorf("%v does not say what --dry-run does:\n%s", args, out.stdout)
+		}
+	}
+	dir := t.TempDir()
+	if out := run(t, Services{}, "cache", "prune", "--dry-run", "--cache-dir", dir); out.code != 0 || !strings.Contains(out.stdout, "Dry run: nothing would be deleted.") {
+		t.Errorf("exit %d, stdout %q, stderr %q", out.code, out.stdout, out.stderr)
+	}
+}
+
 func TestHelpHasExamples(t *testing.T) {
 	out := run(t, Services{}, "check", "--help")
 	for _, want := range []string{"startrust check junegunn/fzf", "--fail-on", "--explain", "--deep", "--no-archive"} {

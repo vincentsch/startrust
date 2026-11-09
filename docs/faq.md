@@ -25,7 +25,9 @@ Add `--no-token` to check without a token, even when one is set.
 
 No. You set everything with flags, and the token comes from the places
 above. `--config` shows up in the help because every command accepts it,
-but StarTrust ignores it. Saved checks go to the [cache](#where-is-the-cache).
+but StarTrust ignores it. `--dry-run` is also on every command, but it only
+does something for `cache prune`. The other commands only read data, so
+there is nothing to preview. Saved checks go to the [cache](#where-is-the-cache).
 
 ## What does StarTrust send where?
 
