@@ -65,6 +65,11 @@ func NewApp(services Services) *rungrad.App {
 		Version: version.String(),
 	})
 	app.Root().Example = "startrust check junegunn/fzf\nstartrust check astral-sh/uv --details\nstartrust compare charmbracelet/glow junegunn/fzf"
+	// Every rungrad tool accepts --config, but StarTrust has no settings to
+	// put in a file. The help says so, so nobody looks for one.
+	if flag := app.Root().PersistentFlags().Lookup("config"); flag != nil {
+		flag.Usage = "Ignored, because StarTrust has no config file"
+	}
 	app.AddCommand(
 		checkCommand(services),
 		compareCommand(services),

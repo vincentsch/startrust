@@ -14,7 +14,7 @@ Check if a GitHub repo's stars look bought
 
 ## Global flags
 
-- `--config` Path to the config file. Type: `string`. Default: none.
+- `--config` Ignored, because StarTrust has no config file. Type: `string`. Default: none.
 - `--dry-run` Preview changes without performing them. Type: `bool`. Default: `false`.
 - `--json` Output stable JSON instead of the human view. Type: `bool`. Default: `false`.
 - `--no-prompt` Never block on an interactive prompt. Type: `bool`. Default: `false`.

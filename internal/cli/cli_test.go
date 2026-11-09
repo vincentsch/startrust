@@ -478,6 +478,18 @@ func TestCacheListAndPrune(t *testing.T) {
 	}
 }
 
+func TestHelpSaysThereIsNoConfigFile(t *testing.T) {
+	out := run(t, Services{}, "--help")
+	if !strings.Contains(out.stdout, "--config string   Ignored, because StarTrust has no config file") {
+		t.Errorf("--help does not say that --config is ignored:\n%s", out.stdout)
+	}
+	// The flag still works, so scripts that pass it keep running.
+	dir := t.TempDir()
+	if out := run(t, Services{}, "cache", "list", "--config", filepath.Join(dir, "missing.yaml"), "--cache-dir", dir); out.code != 0 {
+		t.Errorf("exit %d, stderr %q", out.code, out.stderr)
+	}
+}
+
 func TestHelpHasExamples(t *testing.T) {
 	out := run(t, Services{}, "check", "--help")
 	for _, want := range []string{"startrust check junegunn/fzf", "--fail-on", "--explain", "--deep", "--no-archive"} {
