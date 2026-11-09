@@ -97,9 +97,9 @@ with risk unknown. This is not a pass.
 
 GH Archive files events under the name a repo had at the time. GitHub
 forwards the old names of a renamed repo to it, but it does not list them,
-so StarTrust cannot find them on its own. It looks up the current name, the
-name you typed, and every name you add with `--former-name`. If the repo
-had another name on a busy day, StarTrust misses the stars given under that
+so StarTrust cannot find them on its own. It looks up the current name and
+the name you typed. It also looks up every name you add with
+`--former-name`. If the repo had another name on a busy day, StarTrust misses the stars given under that
 name. When GH Archive has no stars at all for a busy day from before June
 2026, the Limits part of the report gives the command to run with
 `--former-name`, and the JSON has `"rename_suspected": true`. On later days

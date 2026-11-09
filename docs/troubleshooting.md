@@ -8,7 +8,7 @@ says what you can try next. The sections below cover the common cases.
 Without a token, GitHub allows 60 requests an hour from your IP address.
 A check of an old repo can use 20 or more of them. The last lines of every
 report say how many requests were left after the check and when the limit
-resets, so you can tell before the next check. Log in with the GitHub
+resets. So you know before the next check whether enough are left. Log in with the GitHub
 CLI (`gh auth login`) or set `GITHUB_TOKEN` to get 5,000 an hour. The
 message says when the limit resets. When it says "for this token", the
 token's own limit is used up, so wait until then.
@@ -87,8 +87,8 @@ itself also works, such as `startrust check snowpackjs/astro`, because
 GitHub forwards it to the repo.
 
 GitHub does not list a repo's former names, so StarTrust cannot find them
-for you. Old links often show them, for example in the project's changelog,
-in its release notes or in blog posts from that time. If
+for you. Old links often show them, for example in the project's changelog
+or in blog posts from that time. If
 `https://github.com/old-owner/old-name` opens the repo in your browser,
 GitHub forwards that name, and StarTrust can use it. GH Archive matches
 names exactly, so write the old name with the same capital letters as back
