@@ -23,8 +23,13 @@ func TestLive(t *testing.T) {
 		t.Skip("set STARTRUST_LIVE=1 to talk to the real GitHub API")
 	}
 	services := Services{
-		Getenv:    os.Getenv,
-		FindToken: func(context.Context) github.Token { return github.Token{Value: os.Getenv("GITHUB_TOKEN")} },
+		Getenv: os.Getenv,
+		FindToken: func(context.Context) github.Token {
+			if value := os.Getenv("GITHUB_TOKEN"); value != "" {
+				return github.Token{Value: value, Source: "GITHUB_TOKEN"}
+			}
+			return github.Token{}
+		},
 	}
 	cases := []struct {
 		repo  string
