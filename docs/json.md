@@ -157,7 +157,7 @@ Each entry of `days` and the `biggest_day` has these fields:
 | `normal_day` | Median stars per day in the 28 days before. |
 | `times_normal` | Stars that day divided by the normal day, or `null` when the normal day is 0. A ratio against no stars would only repeat the star count. A normal day between 0 and 1 star counts as 1. |
 | `spike` | `launch`, `unusual`, `spike`, or empty when the day is not part of a spike. |
-| `judged` | `true` when the day's share of one-off accounts counts. Only then is `one_off` out of `checked` in `accounts` worth reading. `false` when the accounts were not checked, could not be judged or are provisional. |
+| `judged` | `true` when the day's share of one-off accounts counts. Only then is `one_off` out of `checked` in `accounts` worth reading. `false` when the accounts were not checked. It is also `false` when `accounts` has a `problem` or is `provisional`. |
 | `accounts` | The GH Archive check for that day, or `null` when the accounts were not checked. See below. |
 | `profiles` | With `--deep`: `accounts`, `new`, `empty` and `new_or_empty` counts for that day. An account can be both new and empty. |
 | `explanations` | With `--explain`: Hacker News posts (`kind: hacker_news`) and releases (`kind: release`) near the day. |
@@ -205,8 +205,8 @@ all happened.
 
 ### Sources
 
-`sources` says where the data came from, what it cost and what was
-missing.
+`sources` says where the data came from and what was missing. It also
+counts the requests the check sent.
 
 | Field | Meaning |
 | --- | --- |

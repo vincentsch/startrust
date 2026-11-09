@@ -17,8 +17,8 @@ a report for the part it read and says which dates it covers.
 ## "GitHub rejected the token"
 
 Your GitHub token has expired or was revoked. The message says where
-StarTrust found it: in `GITHUB_TOKEN`, in `GH_TOKEN` or in your GitHub CLI
-login. StarTrust continues without it and says so under Limits. Run `gh
+StarTrust found it, such as `GH_TOKEN` or your GitHub CLI login. StarTrust
+continues without it and says so under Limits. Run `gh
 auth login` again or set a new token. To stop using it right away, add
 `--no-token`.
 
