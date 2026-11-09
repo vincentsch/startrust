@@ -72,8 +72,11 @@ func Text(w io.Writer, r *check.Result, details bool) {
 
 	fmt.Fprintln(w)
 	footer := fmt.Sprintf("Checked %s using %s.", r.CheckedAt.Local().Format("2006-01-02 15:04 MST"), requestsText(r))
-	if token := tokenText(r.Sources.TokenSource); token != "" {
+	if token := tokenText(r.Sources); token != "" {
 		footer += " " + token
+	}
+	if left := requestsLeftText(r.Sources); left != "" {
+		footer += " " + left
 	}
 	if !details {
 		footer += " Add --details for the full evidence."
@@ -314,19 +317,52 @@ func requestsText(r *check.Result) string {
 	return text
 }
 
-// tokenText says which GitHub token the check used. A token can come from
-// a place the user forgot about, such as a GitHub CLI login in the system
-// keyring, so the report always names it.
-func tokenText(source string) string {
-	switch source {
+// tokenText says which GitHub token the check used and how many requests
+// an hour GitHub allows it. A token can come from a place the user forgot
+// about, such as a GitHub CLI login in the system keyring, so the report
+// always names it. When GitHub did not send its limit, the usual limits
+// stand in; a token in GITHUB_TOKEN can be an Actions job token with a
+// lower limit, so it gets none.
+func tokenText(s check.Sources) string {
+	perHour := ""
+	if rate := s.GitHubRateLimit; rate != nil && rate.Limit > 0 {
+		perHour = ", " + check.Number(rate.Limit) + " requests an hour"
+	}
+	switch s.TokenSource {
 	case "GITHUB_TOKEN", "GH_TOKEN":
-		return "Used the token in " + source + "."
+		return "Used the token in " + s.TokenSource + perHour + "."
 	case "gh":
-		return "Used your GitHub CLI login, 5,000 requests an hour."
+		if perHour == "" {
+			perHour = ", 5,000 requests an hour"
+		}
+		return "Used your GitHub CLI login" + perHour + "."
 	case "none":
-		return "Used no GitHub token, 60 requests an hour."
+		if perHour == "" {
+			perHour = ", 60 requests an hour"
+		}
+		return "Used no GitHub token" + perHour + "."
 	}
 	return ""
+}
+
+// requestsLeftText says how many GitHub requests were left this hour after
+// the check, and when the count starts again, if GitHub said so.
+func requestsLeftText(s check.Sources) string {
+	rate := s.GitHubRateLimit
+	if rate == nil {
+		return ""
+	}
+	text := check.Number(rate.Remaining) + " requests were left after this check."
+	switch rate.Remaining {
+	case 0:
+		text = "No requests were left after this check."
+	case 1:
+		text = "1 request was left after this check."
+	}
+	if !rate.ResetsAt.IsZero() {
+		text += " The limit resets at " + rate.ResetsAt.Local().Format("15:04") + "."
+	}
+	return text
 }
 
 func writeDetails(w io.Writer, r *check.Result) {

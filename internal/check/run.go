@@ -155,6 +155,9 @@ func (r *Runner) Run(ctx context.Context, name string, formerNames ...string) (*
 	}
 	Decide(result, analysis)
 	result.Sources.GitHubRequests = r.GitHub.Requests() - githubBefore
+	if rate, ok := r.GitHub.RateLimit(); ok {
+		result.Sources.GitHubRateLimit = &rate
+	}
 	result.Sources.ArchiveQueries = r.archiveQueries() - archiveBefore
 	progress.Status("")
 
@@ -300,9 +303,9 @@ func (r *Runner) announce(repo github.Repo, now time.Time) {
 		estimate += fmt.Sprintf(" and up to %d GH Archive queries", BigDays)
 	}
 	r.progress().Note(estimate + ".")
-	if remaining, resetAt := r.GitHub.RateLimit(); remaining >= 0 && remaining < pages {
+	if rate, ok := r.GitHub.RateLimit(); ok && rate.Remaining < pages {
 		r.progress().Note(fmt.Sprintf("GitHub allows %d more requests until %s. The check will use what it can get.",
-			remaining, resetAt.Local().Format("15:04")))
+			rate.Remaining, rate.ResetsAt.Local().Format("15:04")))
 	}
 }
 

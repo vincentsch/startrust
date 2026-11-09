@@ -6,7 +6,7 @@ Check reads the repo's daily star counts from GitHub and draws them as a chart. 
 
 Below the verdict you see the repo's activity, such as its forks and recent issues. They help when a repo is too new for StarTrust to judge, but they never change the risk.
 
-You need no setup. Without a token, GitHub allows 60 requests an hour, which is enough for one or two checks. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the GitHub CLI, StarTrust uses that token. The last line of the report says which one it used. Add --no-token to check without one.
+You need no setup. Without a token, GitHub allows 60 requests an hour, which is enough for one or two checks. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the GitHub CLI, StarTrust uses that token. The last lines of the report say which one it used and how many requests were left. Add --no-token to check without one.
 
 GH Archive files stars under the name a repo had at the time. If the repo was renamed, add its old name with --former-name, and one check covers its whole history. Checking the old name itself works too, because GitHub forwards it to the repo.
 

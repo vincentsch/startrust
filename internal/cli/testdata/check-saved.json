@@ -71,6 +71,11 @@
     "stargazers": "off",
     "explain": "off",
     "github_requests": 3,
+    "github_rate_limit": {
+      "limit": 60,
+      "remaining": 58,
+      "resets_at": "2026-10-26T19:00:00Z"
+    },
     "archive_queries": 1,
     "token_source": "none"
   },

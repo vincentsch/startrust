@@ -72,6 +72,7 @@ This is the layout without `--details`, from a check of fzf
     "stargazers": "off",
     "explain": "off",
     "github_requests": 25,
+    "github_rate_limit": { "limit": 5000, "remaining": 4976, "resets_at": "2026-10-26T23:10:00Z" },
     "archive_queries": 3,
     "token_source": "gh"
   }
@@ -223,6 +224,7 @@ counts the requests the check sent.
 | `stargazers` | The stargazer list for `--deep`: `listed`, `partial`, `hidden` (GitHub does not show it to this token) or `off` (without `--deep`). |
 | `explain` | The lookup for `--explain`: `used`, `partial` or `off` (without `--explain`). |
 | `github_requests` | GitHub API requests this check sent, retries included. In `compare`, each repo counts its own. |
+| `github_rate_limit` | GitHub's hourly limit after the check's last request, from the `X-RateLimit` headers GitHub sends. `limit` is the number of requests an hour, such as 60 without a token. `remaining` says how many were left, and `resets_at` says when the count starts again, in UTC. `null` when GitHub sent no such headers. The search that counts issues has a limit of its own and is not part of it. |
 | `archive_queries` | Queries this check sent to GH Archive, at most one per checked day. Days whose answer was in the cache cost none. |
 | `token_source` | The GitHub token the check used: `GITHUB_TOKEN`, `GH_TOKEN`, `gh` (the token that `gh auth token` gave, from your GitHub CLI login) or `none`. It is `none` with `--no-token`, and after GitHub rejected the token. |
 | `history_problem` | Why the history is partial. |

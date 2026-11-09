@@ -15,8 +15,10 @@ GitHub's limit from 60 to 5,000 requests an hour. StarTrust looks in
 GitHub CLI (`gh auth token`). It uses the token only to read from GitHub,
 and it never prints or stores it.
 
-The last line of the report says which token the check used, such as "Used
-your GitHub CLI login". In the JSON, `sources.token_source` says the same.
+The last lines of the report say which token the check used, such as "Used
+your GitHub CLI login". They also say how many requests GitHub had left
+after the check. In the JSON, `sources.token_source` and
+`sources.github_rate_limit` say the same.
 Add `--no-token` to check without a token, even when one is set.
 
 ## Does StarTrust have a config file?

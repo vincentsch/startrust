@@ -60,7 +60,10 @@ empty folder. If the user wants a check without any token, add
 a token can come from.
 
 Without a token GitHub allows 60 requests an hour. One check of an old repo
-can use 20 or more. If the command exits with code 6, the limit is used
+can use 20 or more. `sources.github_requests` says how many the check
+used. `sources.github_rate_limit` has GitHub's own numbers after the check.
+Its `remaining` says how many requests were left, and `resets_at` says when
+the limit starts again. Look at `remaining` before you run more checks. If the command exits with code 6, the limit is used
 up. Tell the user when it resets (the message says) and that `gh auth
 login` raises it.
 

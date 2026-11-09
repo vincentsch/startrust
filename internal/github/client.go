@@ -41,10 +41,21 @@ type Client struct {
 	// Sleep waits between retries. Tests replace it to run fast.
 	Sleep func(context.Context, time.Duration) error
 
-	mu        sync.Mutex
-	requests  int
-	remaining int
-	resetAt   time.Time
+	mu       sync.Mutex
+	requests int
+	rate     *RateLimit
+}
+
+// RateLimit is GitHub's hourly limit for ordinary requests, as one of its
+// answers reported it in the X-RateLimit headers.
+type RateLimit struct {
+	// Limit is how many requests GitHub allows an hour, such as 60 without
+	// a token.
+	Limit int `json:"limit"`
+	// Remaining is how many of them are left.
+	Remaining int `json:"remaining"`
+	// ResetsAt is when the count starts again from Limit.
+	ResetsAt time.Time `json:"resets_at"`
 }
 
 // Requests returns how many HTTP requests the client has sent, retries included.
@@ -54,15 +65,15 @@ func (c *Client) Requests() int {
 	return c.requests
 }
 
-// RateLimit returns the remaining request count and reset time GitHub sent
-// with the latest response. Remaining is -1 before the first response.
-func (c *Client) RateLimit() (remaining int, resetAt time.Time) {
+// RateLimit returns the hourly limit that GitHub sent with its latest
+// answer to an ordinary request. It reports false until GitHub sent one.
+func (c *Client) RateLimit() (RateLimit, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if c.requests == 0 {
-		return -1, time.Time{}
+	if c.rate == nil {
+		return RateLimit{}, false
 	}
-	return c.remaining, c.resetAt
+	return *c.rate, true
 }
 
 func (c *Client) baseURL() string {
@@ -301,12 +312,14 @@ func (c *Client) noteRateLimit(h http.Header) {
 	if err != nil {
 		return
 	}
+	rate := RateLimit{Remaining: remaining}
+	rate.Limit, _ = strconv.Atoi(h.Get("X-RateLimit-Limit"))
+	if reset, err := strconv.ParseInt(h.Get("X-RateLimit-Reset"), 10, 64); err == nil {
+		rate.ResetsAt = time.Unix(reset, 0).UTC()
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.remaining = remaining
-	if reset, err := strconv.ParseInt(h.Get("X-RateLimit-Reset"), 10, 64); err == nil {
-		c.resetAt = time.Unix(reset, 0)
-	}
+	c.rate = &rate
 }
 
 func (c *Client) classify(res *http.Response, body []byte, path string) *Error {

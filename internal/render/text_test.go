@@ -7,6 +7,7 @@ import (
 
 	"github.com/vincentsch/startrust/internal/archive"
 	"github.com/vincentsch/startrust/internal/check"
+	"github.com/vincentsch/startrust/internal/github"
 	"github.com/vincentsch/startrust/internal/stars"
 )
 
@@ -188,5 +189,32 @@ func TestFormerNamesAreShownUnderTheHeader(t *testing.T) {
 	if text := strings.Join(strings.Fields(out.String()), " "); !strings.Contains(text, "GitHub forwards snowpackjs/astro and old-owner/astro to this repo.") ||
 		strings.Contains(text, "searched") {
 		t.Errorf("text without the account check:\n%s", out.String())
+	}
+}
+
+func TestFooterSaysHowManyRequestsAreLeft(t *testing.T) {
+	footer := func(s check.Sources) string {
+		var out strings.Builder
+		Text(&out, &check.Result{Repository: "a/b", Sources: s}, false)
+		return strings.Join(strings.Fields(out.String()), " ")
+	}
+	resets := time.Date(2026, 11, 9, 13, 0, 0, 0, time.UTC)
+	// An Actions job token gets 1,000 requests an hour; GitHub's own
+	// number wins over any guess.
+	got := footer(check.Sources{TokenSource: "GITHUB_TOKEN", GitHubRequests: 12,
+		GitHubRateLimit: &github.RateLimit{Limit: 1000, Remaining: 0, ResetsAt: resets}})
+	want := "using 12 GitHub requests. Used the token in GITHUB_TOKEN, 1,000 requests an hour. No requests were left after this check. " +
+		"The limit resets at " + resets.Local().Format("15:04") + "."
+	if !strings.Contains(got, want) {
+		t.Errorf("footer:\n%s\nwant %q", got, want)
+	}
+	// A check saved before GitHub sent the numbers says only what it knows.
+	got = footer(check.Sources{TokenSource: "GITHUB_TOKEN", GitHubRequests: 12})
+	if !strings.Contains(got, "Used the token in GITHUB_TOKEN. ") || strings.Contains(got, "left") {
+		t.Errorf("footer without GitHub's numbers:\n%s", got)
+	}
+	got = footer(check.Sources{TokenSource: "none", GitHubRequests: 1, GitHubRateLimit: &github.RateLimit{Limit: 60, Remaining: 1}})
+	if !strings.Contains(got, "Used no GitHub token, 60 requests an hour. 1 request was left after this check.") || strings.Contains(got, "resets") {
+		t.Errorf("footer with one request left:\n%s", got)
 	}
 }

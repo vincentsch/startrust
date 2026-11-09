@@ -6,7 +6,9 @@ says what you can try next. The sections below cover the common cases.
 ## "GitHub's rate limit is used up"
 
 Without a token, GitHub allows 60 requests an hour from your IP address.
-A check of an old repo can use 20 or more of them. Log in with the GitHub
+A check of an old repo can use 20 or more of them. The last lines of every
+report say how many requests were left after the check and when the limit
+resets, so you can tell before the next check. Log in with the GitHub
 CLI (`gh auth login`) or set `GITHUB_TOKEN` to get 5,000 an hour. The
 message says when the limit resets. When it says "for this token", the
 token's own limit is used up, so wait until then.
@@ -24,7 +26,7 @@ auth login` again or set a new token. To stop using it right away, add
 
 ## The report used a token you did not expect
 
-The last line of the report says which token the check used. "Used your
+The last lines of the report say which token the check used. "Used your
 GitHub CLI login" means that `gh auth token` gave StarTrust a token. The
 GitHub CLI also finds a login in your system keyring, even when `gh auth
 status` reports none. This happens, for example, in a shell whose HOME

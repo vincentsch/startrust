@@ -63,4 +63,5 @@ Limits
   accounts were checked here are older, so that does not affect this check.
 
 Checked <time> using 9 GitHub requests and 3 GH Archive queries.
-Used no GitHub token, 60 requests an hour. Add --details for the full evidence.
+Used no GitHub token, 60 requests an hour. 52 requests were left after this
+check. The limit resets at HH:MM. Add --details for the full evidence.

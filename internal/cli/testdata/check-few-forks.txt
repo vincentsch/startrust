@@ -43,4 +43,5 @@ Limits
   timing of the stars.
 
 Checked <time> using 6 GitHub requests. Used no GitHub token, 60
-requests an hour. Add --details for the full evidence.
+requests an hour. 55 requests were left after this check. The limit resets at
+HH:MM. Add --details for the full evidence.

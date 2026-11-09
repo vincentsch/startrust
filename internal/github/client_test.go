@@ -365,7 +365,39 @@ func TestSearchLimitIsNotTheHourlyLimit(t *testing.T) {
 	if _, err := client.IssuesAndPullRequestsSince(context.Background(), "a/b", time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if remaining, _ := client.RateLimit(); remaining != 4321 {
-		t.Errorf("remaining = %d, want the hourly limit 4321", remaining)
+	if rate, ok := client.RateLimit(); !ok || rate.Remaining != 4321 {
+		t.Errorf("rate limit = %+v, want 4321 left of the hourly limit", rate)
+	}
+}
+
+func TestRateLimitComesFromTheHeaders(t *testing.T) {
+	// Before GitHub sends its numbers, nothing is known, which is not the
+	// same as no requests left.
+	plain := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		io.WriteString(w, `{"id":1,"full_name":"a/b"}`)
+	}))
+	defer plain.Close()
+	client := &Client{BaseURL: plain.URL}
+	if _, err := client.Repo(context.Background(), "a/b"); err != nil {
+		t.Fatal(err)
+	}
+	if rate, ok := client.RateLimit(); ok {
+		t.Errorf("rate limit %+v without any header", rate)
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("X-RateLimit-Limit", "60")
+		w.Header().Set("X-RateLimit-Remaining", "48")
+		w.Header().Set("X-RateLimit-Reset", "1793710800")
+		io.WriteString(w, `{"id":1,"full_name":"a/b"}`)
+	}))
+	defer server.Close()
+	client = &Client{BaseURL: server.URL}
+	if _, err := client.Repo(context.Background(), "a/b"); err != nil {
+		t.Fatal(err)
+	}
+	want := RateLimit{Limit: 60, Remaining: 48, ResetsAt: time.Unix(1793710800, 0).UTC()}
+	if rate, ok := client.RateLimit(); !ok || rate != want {
+		t.Errorf("rate limit = %+v, want %+v", rate, want)
 	}
 }

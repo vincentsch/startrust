@@ -53,4 +53,5 @@ Limits
   only part of its stargazers.
 
 Checked <time> using 25 GitHub requests and 3 GH Archive queries.
-Used no GitHub token, 60 requests an hour. Add --details for the full evidence.
+Used no GitHub token, 60 requests an hour. 36 requests were left after this
+check. The limit resets at HH:MM. Add --details for the full evidence.

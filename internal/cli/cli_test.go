@@ -81,8 +81,22 @@ func fakeRenamedGitHub(t *testing.T, renames map[string]string, names ...string)
 	var seen []string
 	var server *httptest.Server
 	historyPath := regexp.MustCompile(`^/(?:repos/([^/]+/[^/]+)|repositories/(\d+))/stargazers/history$`)
+	core := 0
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		seen = append(seen, req.URL.RequestURI())
+		// GitHub sends its hourly limit with every answer. Search has a
+		// limit of its own, set below.
+		if req.URL.Path != "/search/issues" {
+			core++
+			limit := 60
+			if req.Header.Get("Authorization") != "" {
+				limit = 5000
+			}
+			w.Header().Set("X-RateLimit-Resource", "core")
+			w.Header().Set("X-RateLimit-Limit", fmt.Sprint(limit))
+			w.Header().Set("X-RateLimit-Remaining", fmt.Sprint(max(0, limit-core)))
+			w.Header().Set("X-RateLimit-Reset", fmt.Sprint(testNow.Add(time.Hour).Unix()))
+		}
 		if m := historyPath.FindStringSubmatch(req.URL.Path); m != nil {
 			f, ok := fixtures[strings.ToLower(m[1])]
 			if m[2] != "" {
@@ -230,6 +244,8 @@ func golden(t *testing.T, name, got string) {
 // stable removes the parts of the output that change between runs.
 func stable(s string) string {
 	s = regexp.MustCompile(`Checked \d{4}-\d{2}-\d{2} \d{2}:\d{2} \S+`).ReplaceAllString(s, "Checked <time>")
+	// The reset time is local time; HH:MM keeps the width, so lines wrap the same.
+	s = regexp.MustCompile(`(resets\s+at\s+)\d{2}:\d{2}`).ReplaceAllString(s, "${1}HH:MM")
 	return s
 }
 
@@ -657,15 +673,18 @@ func TestRejectedTokenFallsBackToAnonymous(t *testing.T) {
 }
 
 func TestReportSaysWhichTokenWasUsed(t *testing.T) {
-	gh, _ := fakeGitHub(t, "vincentsch/explainroo")
 	for _, tc := range []struct {
 		source, words string
 	}{
-		{"GITHUB_TOKEN", "Used the token in GITHUB_TOKEN."},
-		{"GH_TOKEN", "Used the token in GH_TOKEN."},
-		{"gh", "Used your GitHub CLI login, 5,000 requests an hour."},
-		{"", "Used no GitHub token, 60 requests an hour."},
+		// The limit comes from GitHub's answers, which also say how many
+		// requests are left. The search has a limit of its own, so only
+		// the repo summary and the history count here.
+		{"GITHUB_TOKEN", "Used the token in GITHUB_TOKEN, 5,000 requests an hour. 4,998 requests were left after this check."},
+		{"GH_TOKEN", "Used the token in GH_TOKEN, 5,000 requests an hour. 4,998 requests were left after this check."},
+		{"gh", "Used your GitHub CLI login, 5,000 requests an hour. 4,998 requests were left after this check."},
+		{"", "Used no GitHub token, 60 requests an hour. 58 requests were left after this check."},
 	} {
+		gh, _ := fakeGitHub(t, "vincentsch/explainroo")
 		token := github.Token{Source: tc.source}
 		if tc.source != "" {
 			token.Value = "token-from-" + tc.source
@@ -680,7 +699,8 @@ func TestReportSaysWhichTokenWasUsed(t *testing.T) {
 		if want == "" {
 			want = "none"
 		}
-		if !strings.Contains(out.stdout, `"token_source": "`+want+`"`) || strings.Contains(out.stdout, `"token":`) {
+		if !strings.Contains(out.stdout, `"token_source": "`+want+`"`) || strings.Contains(out.stdout, `"token":`) ||
+			!strings.Contains(out.stdout, `"github_rate_limit": {`) {
 			t.Errorf("%q: JSON sources:\n%s", tc.source, out.stdout)
 		}
 	}

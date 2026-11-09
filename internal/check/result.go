@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/vincentsch/startrust/internal/archive"
+	"github.com/vincentsch/startrust/internal/github"
 	"github.com/vincentsch/startrust/internal/stars"
 )
 
@@ -142,7 +143,10 @@ type Sources struct {
 	Explain    string `json:"explain"`    // "used", "partial" or "off"
 
 	GitHubRequests int `json:"github_requests"`
-	ArchiveQueries int `json:"archive_queries"`
+	// GitHubRateLimit is GitHub's hourly limit after the check's last
+	// ordinary request, or nil when GitHub did not send it.
+	GitHubRateLimit *github.RateLimit `json:"github_rate_limit"`
+	ArchiveQueries  int               `json:"archive_queries"`
 	// TokenSource says which GitHub token the check used: "GITHUB_TOKEN",
 	// "GH_TOKEN", "gh" (the GitHub CLI login) or "none".
 	TokenSource     string `json:"token_source"`

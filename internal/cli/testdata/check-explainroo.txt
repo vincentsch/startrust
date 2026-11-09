@@ -40,4 +40,5 @@ Limits
   stars).
 
 Checked <time> using 3 GitHub requests and 1 GH Archive query.
-Used no GitHub token, 60 requests an hour. Add --details for the full evidence.
+Used no GitHub token, 60 requests an hour. 58 requests were left after this
+check. The limit resets at HH:MM. Add --details for the full evidence.

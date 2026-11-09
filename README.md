@@ -102,7 +102,8 @@ Limits
   only part of its stargazers.
 
 Checked 2026-10-26 23:10 CET using 25 GitHub requests and 3 GH Archive queries.
-Used your GitHub CLI login, 5,000 requests an hour. Add --details for the full
+Used your GitHub CLI login, 5,000 requests an hour. 4,976 requests were left
+after this check. The limit resets at 00:10. Add --details for the full
 evidence.
 ```
 
@@ -169,8 +170,9 @@ startrust check your/repo --deep            # maintainers: compare the profiles 
 
 GitHub allows 60 requests an hour without a token, which is enough for one
 or two checks. With a token the limit is 5,000. StarTrust uses the token in
-`GITHUB_TOKEN` or `GH_TOKEN`, or your GitHub CLI login. The last line of the
-report says which one it used. Add `--no-token` to check without one.
+`GITHUB_TOKEN` or `GH_TOKEN`, or your GitHub CLI login. The last lines of the
+report say which one it used and how many requests were left. Add
+`--no-token` to check without one.
 
 For CI there is a GitHub Action, and `--fail-on` sets the exit code by risk.
 StarTrust can also make a Shields.io badge. See [CI and
