@@ -59,8 +59,8 @@ Limits
 - GitHub only counts stars that still exist. Stars from deleted accounts are
   missing from the history.
 - Account checks use GH Archive, a public third-party record of GitHub events.
-  Since June 2025 it has missed a growing share of all stars, and since June
-  2026 almost all of them.
+  Since June 2025 it has missed a growing share of all stars. All the days whose
+  accounts were checked here are older, so that does not affect this check.
 
 Checked <time> using 9 GitHub requests and 3 GH Archive queries.
 Used no GitHub token, 60 requests an hour. Add --details for the full evidence.

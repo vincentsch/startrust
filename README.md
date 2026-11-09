@@ -98,7 +98,8 @@ Limits
   missing from the history.
 - Account checks use GH Archive, a public third-party record of GitHub events.
   Since June 2025 it has missed a growing share of all stars, and since June
-  2026 almost all of them.
+  2026 almost all of them. 2025-07-09 falls in that time, so GH Archive may have
+  only part of its stargazers.
 
 Checked 2026-10-26 23:10 CET using 25 GitHub requests and 3 GH Archive queries.
 Used your GitHub CLI login, 5,000 requests an hour. Add --details for the full

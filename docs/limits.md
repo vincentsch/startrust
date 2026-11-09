@@ -83,6 +83,10 @@ Shares over 100% are normal. GitHub drops the stars of accounts that were
 deleted later, but GH Archive still has them. The short rise in September
 2026 came from a few days around the start of the month.
 
+The Limits part of every report says whether this affects the check. It
+names the busy days from June 2025 on whose accounts were checked, or it
+says that all of them are older.
+
 StarTrust judges a day only when GH Archive has at least 40% of its stars,
 and the weeks around it are recorded about as well (see [the account
 check](how-it-works.md#the-account-check)). So most busy days from late

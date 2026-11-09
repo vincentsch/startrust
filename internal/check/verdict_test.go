@@ -426,6 +426,37 @@ func TestArchiveLimitsSayWhatIsMissing(t *testing.T) {
 	}
 }
 
+func TestGapNoteSaysWhetherItAffectsTheCheck(t *testing.T) {
+	// The same spike in 2022 and in 2025. GH Archive started to miss
+	// stars in June 2025, so only the second check is affected, and the
+	// note names the day.
+	limitFor := func(start string) string {
+		t.Helper()
+		s, _ := quietThenSpike()
+		s.Start = day(start)
+		a := stars.Analyze(s)
+		r := &Result{Repository: "me/tool", Stars: s.Total(), Days: BiggestDays(s, a, BigDays), Sources: Sources{Archive: "used"}}
+		r.Days[0].Accounts = cohort(r.Days[0].Day, 500, 20)
+		r.Days[0].Accounts.WindowRecorded = 1
+		Decide(r, a)
+		for _, line := range r.Limits {
+			if strings.HasPrefix(line, "Account checks use GH Archive") {
+				return line
+			}
+		}
+		t.Fatalf("no GH Archive note in %v", r.Limits)
+		return ""
+	}
+	if got := limitFor("2022-01-01"); !strings.HasSuffix(got,
+		"Since June 2025 it has missed a growing share of all stars. All the days whose accounts were checked here are older, so that does not affect this check.") {
+		t.Errorf("2022: %q", got)
+	}
+	if got := limitFor("2025-01-01"); !strings.HasSuffix(got,
+		"and since June 2026 almost all of them. 2025-07-20 falls in that time, so GH Archive may have only part of its stargazers.") {
+		t.Errorf("2025: %q", got)
+	}
+}
+
 func TestRenameHintNamesTheCommandToRun(t *testing.T) {
 	// withastro/astro was snowpackjs/astro at its launch. A check that
 	// already looked up one former name and still found nothing on a day

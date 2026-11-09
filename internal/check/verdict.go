@@ -619,8 +619,7 @@ func baseLimits(r *Result, targets []int) []string {
 	}
 	switch r.Sources.Archive {
 	case "used", "partial":
-		limits = append(limits, "Account checks use GH Archive, a public third-party record of GitHub events. "+
-			"Since June 2025 it has missed a growing share of all stars, and since June 2026 almost all of them.")
+		limits = append(limits, archiveGapLimit(r.Days))
 	case "off":
 		if len(targets) > 0 {
 			limits = append(limits, "The accounts were not checked (--no-archive), so the verdict rests on the timing of the stars.")
@@ -686,6 +685,29 @@ func baseLimits(r *Result, targets []int) []string {
 	return limits
 }
 
+// archiveGapLimit says whether GH Archive's missing stars touch this check:
+// whether any day whose accounts were checked falls in the time since June
+// 2025.
+func archiveGapLimit(days []Day) string {
+	var affected []string
+	for _, d := range days {
+		if d.Accounts != nil && !d.Day.Before(archiveThin) {
+			affected = append(affected, date(d.Day))
+		}
+	}
+	limit := "Account checks use GH Archive, a public third-party record of GitHub events. "
+	switch len(affected) {
+	case 0:
+		return limit + "Since June 2025 it has missed a growing share of all stars. " +
+			"All the days whose accounts were checked here are older, so that does not affect this check."
+	case 1:
+		return limit + "Since June 2025 it has missed a growing share of all stars, and since June 2026 almost all of them. " +
+			affected[0] + " falls in that time, so GH Archive may have only part of its stargazers."
+	}
+	return limit + "Since June 2025 it has missed a growing share of all stars, and since June 2026 almost all of them. " +
+		joinAnd(affected) + " fall in that time, so GH Archive may have only part of their stargazers."
+}
+
 // lastSettle returns the first day on which every provisional check counts.
 func lastSettle(days []Day) time.Time {
 	var last time.Time
@@ -702,10 +724,14 @@ func lastSettle(days []Day) time.Time {
 // archiveStart is the first day GH Archive has events for.
 var archiveStart = time.Date(2011, 2, 12, 0, 0, 0, 0, time.UTC)
 
-// archiveNearlyEmpty is when GH Archive began to miss almost every star
-// (docs/limits.md has the shares by month). On a later day, no record at
-// all is what GH Archive usually has.
-var archiveNearlyEmpty = time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
+// archiveThin is when GH Archive began to miss a growing share of all
+// stars, and archiveNearlyEmpty is when it began to miss almost every one
+// (docs/limits.md has the shares by month). On a day after
+// archiveNearlyEmpty, no record at all is what GH Archive usually has.
+var (
+	archiveThin        = time.Date(2025, 6, 1, 0, 0, 0, 0, time.UTC)
+	archiveNearlyEmpty = time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
+)
 
 // daysWithoutRecord returns the busy days on which GH Archive has no star at
 // all for the repo under any of the names it was asked for. GH Archive

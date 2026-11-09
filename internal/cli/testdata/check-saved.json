@@ -17,7 +17,7 @@
   "limits": [
     "Anyone can star any repo, so a pattern here says nothing about who arranged it.",
     "GitHub only counts stars that still exist. Stars from deleted accounts are missing from the history.",
-    "Account checks use GH Archive, a public third-party record of GitHub events. Since June 2025 it has missed a growing share of all stars, and since June 2026 almost all of them.",
+    "Account checks use GH Archive, a public third-party record of GitHub events. Since June 2025 it has missed a growing share of all stars, and since June 2026 almost all of them. 2026-10-01 falls in that time, so GH Archive may have only part of its stargazers.",
     "GH Archive has too few records to check the accounts on 2026-10-01 (5 of 261 stars)."
   ],
   "accounts_checked": "none",
