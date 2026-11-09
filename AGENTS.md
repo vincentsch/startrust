@@ -63,9 +63,9 @@ Without a token GitHub allows 60 requests an hour. One check of an old repo
 can use 20 or more. `sources.github_requests` says how many the check
 used. `sources.github_rate_limit` has GitHub's own numbers after the check.
 Its `remaining` says how many requests were left, and `resets_at` says when
-the limit starts again. Look at `remaining` before you run more checks. If the command exits with code 6, the limit is used
-up. Tell the user when it resets (the message says) and that `gh auth
-login` raises it.
+the limit starts again. Look at `remaining` before you run more checks. If
+the command exits with code 6, the limit is used up. Tell the user when it
+resets (the message says) and that `gh auth login` raises it.
 
 Read these fields from the JSON, and only these:
 
@@ -75,14 +75,27 @@ Read these fields from the JSON, and only these:
 - `verdict`: a few sentences that describe what the check saw. Quote it.
 - `accounts_checked`: `all`, `some` or `none`. With `none`, the verdict
   rests on the timing of the stars.
+- `rename_suspected`: `true` when GH Archive has no stars at all for the
+  repo on a busy day from before June 2026. The repo may have had another
+  name then. Follow [step 3](#3-follow-up-on-a-rename) before you explain
+  the result.
+- `repository` and `former_names`: the repo's current name, and the
+  earlier names that GitHub forwards to it and that the check also looked
+  up in GH Archive. When you checked an old name, `repository` is the new
+  one and `former_names` holds the name you typed. Tell the user that the
+  repo was renamed.
 - `findings`: the evidence behind the verdict.
 - `limits`: what the check could not see. Always pass on the ones that
   matter for this repo.
 - `stars`, `forks`, `watchers` and `issues_and_prs_90_days`: the star
   count, and how much the repo is used besides its stars. They are context
-  and never change the risk. `issues_and_prs_90_days` is `null` when the issues were not counted, for
-  example because GitHub's search did not answer. Then tell the user that
-  it was not counted. Do not say there were none.
+  and never change the risk. `issues_and_prs_90_days` is `null` when the
+  issues were not counted, for example because GitHub's search did not
+  answer. Then tell the user that it was not counted. Do not say there
+  were none.
+- `days`: up to five of the busiest days. Each entry has its date in `day`,
+  GitHub's calendar day written as midnight UTC, such as
+  `2021-06-09T00:00:00Z`. Its star count is in `stars`.
 - `days[].accounts`, only where `days[].judged` is `true`: then `one_off`
   out of `checked` is the share of accounts with no other public stars
   recorded in GH Archive within 30 days. On a day where `judged` is
@@ -90,16 +103,19 @@ Read these fields from the JSON, and only these:
   `accounts` is `null`, the accounts behind that day were not checked.
   Otherwise the day has a `problem` (GH Archive had too little data, and
   `checked` and `one_off` are 0) or is `provisional` (too recent to
-  count).
+  count). `accounts.window_recorded` says how well GH Archive recorded the
+  weeks around the day, compared with the day's own week. `1` means as
+  well, and less means more thinly. StarTrust already uses it to set
+  `judged`, so you never need to weigh it yourself.
 - StarTrust checks at most 1,000 accounts per day. When `checked` is
   smaller than `archived`, the share comes from a sample of 1,000 of the
   day's accounts. Say so when you report it. `archived` can be higher than
   `github_stars`, because GitHub drops the stars of deleted accounts and
   stars that were taken back, while GH Archive keeps them.
 
-Do not compute your own verdict from `days`, `times_normal`,
-`unusual_spikes` or the activity numbers. The verdict already compares
-them with what is known about organic repos.
+Do not compute your own verdict from the other fields, such as `days` or
+`times_normal`. The verdict already compares them with what is known about
+organic repos.
 
 [JSON output](docs/json.md) describes every field.
 
@@ -108,7 +124,36 @@ and show the output in a code block. For the full evidence, add
 `--details`. To match busy days with Hacker News posts and releases, add
 `--explain`.
 
-## 3. Explain the result
+## 3. Follow up on a rename
+
+GH Archive files stars under the name a repo had at the time. When
+`rename_suspected` is `true`, one of the `limits` gives the command to run,
+for example:
+
+```sh
+startrust check withastro/astro --former-name OLD-OWNER/OLD-NAME
+```
+
+1. Find the old name. Ask the user, or look for old links to the repo, for
+   example in its changelog or release notes. GitHub does not list former
+   names, so StarTrust cannot find them itself. Keep the capital letters of
+   the old links, because GH Archive matches names exactly.
+2. Run the command from the limit with `--json` and the old name in place
+   of `OLD-OWNER/OLD-NAME`. StarTrust looks up every name in one check, so
+   the new result covers the whole history. Use it instead of the first
+   one, and tell the user that the check included the old name.
+3. A wrong name costs two requests. StarTrust asks GitHub whether the name
+   leads to the repo, and it stops with exit code 1 when it does not. Then
+   try another name or go on without one.
+4. If you cannot find the old name, explain the first result. Say that the
+   accounts behind some busy days could not be checked, probably because
+   the repo had another name then.
+
+If `rename_suspected` is still `true` with a former name, the repo may have
+had yet another name. The limit then shows the command with every name so
+far.
+
+## 4. Explain the result
 
 Tell the user what was found, in plain words, and quote the verdict. Then
 explain the risk level:
@@ -143,7 +188,7 @@ Never say that the maintainers did anything, and never name a person as
 responsible. If the verdict is medium, suggest `--explain` before drawing
 any conclusion.
 
-## 4. Add it to CI (only when asked)
+## 5. Add it to CI (only when asked)
 
 Do this only when the user asks. Add a file under `.github/workflows/`
 that uses the action, for example:
@@ -170,7 +215,7 @@ wants the job to fail. It never fails on an unknown risk; the action adds a
 warning to the run instead. [CI and badge](docs/ci-and-badge.md) has all the
 inputs and the badge setup. Show the user the file before you commit it.
 
-## 5. Check the user's own repo with --deep (only when asked)
+## 6. Check the user's own repo with --deep (only when asked)
 
 `startrust check owner/repo --deep` lists who starred the repo. It needs a
 token with push access to that repo and one extra request per 100 stars.
@@ -181,6 +226,10 @@ stopped.
 ## Exit codes
 
 - 0: the check ran. Read `risk` for the result.
+- 1: wrong use, such as a bad repo name or flag. A `--former-name` that
+  GitHub does not forward to the repo also gives 1. The message says why.
+- 5: GitHub has no public repo by that name.
+- 6: GitHub's rate limit is used up.
 - 7: `--fail-on` matched. It never matches an unknown risk, so check `risk`
   yourself when that matters.
 - 130: the check was interrupted. Any JSON printed before is a partial
