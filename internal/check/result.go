@@ -84,7 +84,9 @@ type Day struct {
 	Day       time.Time `json:"day"`
 	Stars     int       `json:"stars"`
 	NormalDay float64   `json:"normal_day"`
-	Ratio     float64   `json:"times_normal"`
+	// Ratio is the day's stars divided by the normal day, rounded to one
+	// decimal. It is nil when the normal day had no stars.
+	Ratio *float64 `json:"times_normal"`
 	// Spike says which kind of spike the day belongs to: "launch",
 	// "unusual", "spike", or "" when it is not part of a spike.
 	Spike string `json:"spike"`

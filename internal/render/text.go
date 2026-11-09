@@ -169,7 +169,14 @@ func columnWidths(rows [][]string) []int {
 	return widths
 }
 
-func timesNormal(ratio float64) string { return check.RatioText(ratio) + "x normal" }
+// timesNormal compares a day with a normal day. Without stars on a normal
+// day there is nothing to compare with, so it says that instead.
+func timesNormal(ratio *float64) string {
+	if ratio == nil {
+		return "quiet before"
+	}
+	return check.RatioText(*ratio) + "x normal"
+}
 
 // dayLabel names the spike a listed day belongs to. A day inside a spike
 // whose biggest day is also listed points at that day, so one spike never

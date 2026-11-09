@@ -111,7 +111,7 @@ func BiggestDays(s stars.Series, a stars.Analysis, n int) []Day {
 	days := make([]Day, 0, len(picked))
 	for _, i := range picked {
 		normal := stars.Median(s.Daily[max(0, i-stars.BaselineDays):i])
-		day := Day{Day: s.Day(i), Stars: s.Daily[i], NormalDay: normal, Ratio: round1(stars.Ratio(s.Daily[i], normal))}
+		day := Day{Day: s.Day(i), Stars: s.Daily[i], NormalDay: normal, Ratio: timesNormal(s.Daily[i], normal)}
 		for _, spike := range a.Spikes {
 			if !day.Day.Before(spike.Start) && !day.Day.After(spike.End) {
 				switch {
@@ -472,9 +472,11 @@ func timingSummary(biggest *Day) string {
 		return "No unusual pattern"
 	case biggest.Spike == "launch":
 		return fmt.Sprintf("No unusual pattern. The biggest day was the launch on %s, with %s stars", date(biggest.Day), Number(biggest.Stars))
+	case biggest.Spike == "" && biggest.Ratio == nil:
+		return fmt.Sprintf("No unusual pattern. The stars arrived steadily, and the biggest day had %s stars", Number(biggest.Stars))
 	case biggest.Spike == "":
 		return fmt.Sprintf("No unusual pattern. The stars arrived steadily, and the biggest day had %s stars, %sx a normal day",
-			Number(biggest.Stars), RatioText(biggest.Ratio))
+			Number(biggest.Stars), RatioText(*biggest.Ratio))
 	}
 	return fmt.Sprintf("No unusual pattern. The biggest day was %s, with %s stars", date(biggest.Day), Number(biggest.Stars))
 }
@@ -708,6 +710,16 @@ func date(t time.Time) string { return t.Format("2006-01-02") }
 func percent(share float64) int { return int(math.Round(share * 100)) }
 
 func round1(v float64) float64 { return math.Round(v*10) / 10 }
+
+// timesNormal is a day's ratio for the JSON, rounded to one decimal, or nil
+// when the normal day had no stars.
+func timesNormal(n int, normal float64) *float64 {
+	ratio := stars.TimesNormal(n, normal)
+	if ratio != nil {
+		*ratio = round1(*ratio)
+	}
+	return ratio
+}
 
 // RatioText formats a "times normal" ratio. It rounds to one decimal first,
 // like the JSON, so a stored ratio and a fresh one always print the same.

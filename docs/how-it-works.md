@@ -44,7 +44,10 @@ Hacker News through Algolia's free search API.
 StarTrust compares each day with a normal day. A normal day is the median
 of the 28 days before, which is the middle value when you sort those days
 by their stars. A normal day of less than one star counts as one, so a
-quiet repo's first day with 50 stars is 50 times normal.
+quiet repo's first day with 50 stars is 50 times normal. The report shows
+no such ratio when a normal day had no stars at all, because it would only
+repeat the star count. It says "quiet before" instead, and the JSON has
+`null`.
 
 A day is a **spike** when it has at least 30 stars and at least 10 times a
 normal day. Spike days at most 3 days apart count as one spike. A spike

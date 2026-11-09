@@ -25,7 +25,7 @@ Stars per day, 2026-09-25 to 2026-10-26
                   1
 
 Busiest days, at least a week apart
-  1  2026-10-01  261 stars  261x normal  launch  too few in GH Archive
+  1  2026-10-01  261 stars  quiet before  launch  too few in GH Archive
 
 Limits
 - Anyone can star any repo, so a pattern here says nothing about who arranged

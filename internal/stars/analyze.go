@@ -52,16 +52,17 @@ const (
 
 // Spike is a run of unusually busy days.
 type Spike struct {
-	Start       time.Time `json:"start"`
-	End         time.Time `json:"end"`
-	Peak        time.Time `json:"peak_day"`
-	PeakStars   int       `json:"peak_stars"`
-	Stars       int       `json:"stars"`
-	NormalDay   float64   `json:"normal_day"`
-	Ratio       float64   `json:"times_normal"`
-	StarsBefore int       `json:"stars_before"`
-	Launch      bool      `json:"launch"`
-	Unusual     bool      `json:"unusual"`
+	Start     time.Time `json:"start"`
+	End       time.Time `json:"end"`
+	Peak      time.Time `json:"peak_day"`
+	PeakStars int       `json:"peak_stars"`
+	Stars     int       `json:"stars"`
+	NormalDay float64   `json:"normal_day"`
+	// Ratio is nil when a normal day had no stars (see TimesNormal).
+	Ratio       *float64 `json:"times_normal"`
+	StarsBefore int      `json:"stars_before"`
+	Launch      bool     `json:"launch"`
+	Unusual     bool     `json:"unusual"`
 }
 
 // Burst describes the busiest BurstDays window when most stars arrived in it
@@ -134,6 +135,17 @@ func Ratio(stars int, normal float64) float64 {
 	return float64(stars) / max(normal, 1)
 }
 
+// TimesNormal is the ratio as the report shows it. It is nil when a normal
+// day had no stars: next to an empty normal day, "1,566x normal" would only
+// repeat the star count. The spike rules still use Ratio.
+func TimesNormal(stars int, normal float64) *float64 {
+	if normal == 0 {
+		return nil
+	}
+	ratio := Ratio(stars, normal)
+	return &ratio
+}
+
 func findSpikes(s Series) []Spike {
 	var spikes []Spike
 	starsBefore := 0
@@ -168,9 +180,9 @@ func findSpikes(s Series) []Spike {
 	}
 	for i := range spikes {
 		spike := &spikes[i]
-		spike.Ratio = Ratio(spike.PeakStars, spike.NormalDay)
+		spike.Ratio = TimesNormal(spike.PeakStars, spike.NormalDay)
 		spike.Launch = spike.StarsBefore < LaunchStars
-		spike.Unusual = !spike.Launch && spike.Ratio >= UnusualRatio
+		spike.Unusual = !spike.Launch && Ratio(spike.PeakStars, spike.NormalDay) >= UnusualRatio
 	}
 	// Biggest first: that is the order people read them in.
 	sort.SliceStable(spikes, func(i, j int) bool { return spikes[i].PeakStars > spikes[j].PeakStars })

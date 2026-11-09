@@ -102,7 +102,8 @@ list below it. Two busy days in the same bar share a label, such as "1,5".
 
 The list shows the busiest days, at least a week apart. Each day shows its
 stars and how that compares with a normal day in the four weeks before
-("9x normal"). Some days get a label:
+("9x normal"). When a normal day had no stars at all, there is nothing to
+compare with, and the list says "quiet before". Some days get a label:
 
 - "launch" means that the repo had fewer than 100 stars before.
 - "spike" means that the day is part of a spike. A spike needs at least 30
@@ -117,7 +118,9 @@ says "too few in GH Archive" when the archive has too little data for that
 day or the weeks around it. It says "so far (provisional)" when the 30 days
 after the day are not over yet, and such a share does not count until
 then. A share from fewer than 100 accounts shows its counts, such as "9 of
-30 one-off".
+30 one-off". StarTrust checks at most 1,000 accounts per day. When GH
+Archive has more, the share comes from a sample of 1,000, and the list
+marks it with "(sample)".
 
 "What stands out" explains the evidence behind the verdict. "Limits" says
 what the check could not see. [How the verdict works](how-it-works.md) has

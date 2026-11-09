@@ -422,6 +422,20 @@ func TestArchiveLimitsSayWhatIsMissing(t *testing.T) {
 	}
 }
 
+func TestNoRatioWithoutANormalDay(t *testing.T) {
+	// A normal day of 0 gives no ratio, and the verdict leaves it out.
+	quiet := Day{Day: day("2025-02-09"), Stars: 20}
+	if got := timingSummary(&quiet); strings.Contains(got, "normal day") {
+		t.Errorf("summary %q", got)
+	}
+	if ratio := timesNormal(20, 0); ratio != nil {
+		t.Errorf("ratio %v for a normal day of 0", *ratio)
+	}
+	if ratio := timesNormal(20, 0.5); ratio == nil || *ratio != 20 {
+		t.Errorf("a normal day under 1 star counts as 1: %v", ratio)
+	}
+}
+
 func TestRatioIsRoundedOnce(t *testing.T) {
 	// The busy-day list stores 30.5 for a ratio of 30.47; the spike list
 	// keeps 30.47. Both must print the same.

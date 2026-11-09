@@ -24,7 +24,7 @@
     "day": "2026-10-01T00:00:00Z",
     "stars": 261,
     "normal_day": 0,
-    "times_normal": 261,
+    "times_normal": null,
     "spike": "launch",
     "judged": false,
     "accounts": {
@@ -44,7 +44,7 @@
       "day": "2026-10-01T00:00:00Z",
       "stars": 261,
       "normal_day": 0,
-      "times_normal": 261,
+      "times_normal": null,
       "spike": "launch",
       "judged": false,
       "accounts": {
@@ -118,7 +118,7 @@
         "peak_stars": 261,
         "stars": 326,
         "normal_day": 0,
-        "times_normal": 261,
+        "times_normal": null,
         "stars_before": 26,
         "launch": true,
         "unusual": false

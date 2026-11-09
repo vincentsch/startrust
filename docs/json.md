@@ -155,7 +155,7 @@ Each entry of `days` and the `biggest_day` has these fields:
 | `day` | The date on GitHub's calendar (US Pacific time), written as midnight UTC. |
 | `stars` | The stars GitHub counts for that day. |
 | `normal_day` | Median stars per day in the 28 days before. |
-| `times_normal` | Stars that day divided by the normal day. A normal day under 1 star counts as 1. |
+| `times_normal` | Stars that day divided by the normal day, or `null` when the normal day is 0. A ratio against no stars would only repeat the star count. A normal day between 0 and 1 star counts as 1. |
 | `spike` | `launch`, `unusual`, `spike`, or empty when the day is not part of a spike. |
 | `judged` | `true` when the day's share of one-off accounts counts. Only then is `one_off` out of `checked` in `accounts` worth reading. `false` when the accounts were not checked, could not be judged or are provisional. |
 | `accounts` | The GH Archive check for that day, or `null` when the accounts were not checked. See below. |
@@ -233,7 +233,7 @@ A `*_problem` field is left out when there was no problem.
 | Field | Meaning |
 | --- | --- |
 | `details.history` | `start` (the first day) and `daily`, the stars of each day from then on. |
-| `details.spikes` | Every spike with its dates and its biggest day, and whether it is a launch or unusual. |
+| `details.spikes` | Every spike with its dates and its biggest day, and whether it is a launch or unusual. Its `times_normal` compares the biggest day with the normal day before it, and it is `null` when that normal day is 0. |
 | `details.normal_day` | The normal day before the biggest day. |
 | `details.recent_daily` | Average stars per day over the last 30 days. |
 | `details.profiles` | With `--deep`: the counts for all stargazers. |

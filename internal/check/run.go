@@ -138,7 +138,7 @@ func (r *Runner) Run(ctx context.Context, name string) (*Result, error) {
 		biggest, listed := dayAt(result.Days, analysis.BiggestDay)
 		if !listed {
 			biggest = Day{Day: analysis.BiggestDay, Stars: analysis.BiggestDayStars, NormalDay: analysis.NormalDay,
-				Ratio: round1(stars.Ratio(analysis.BiggestDayStars, analysis.NormalDay))}
+				Ratio: timesNormal(analysis.BiggestDayStars, analysis.NormalDay)}
 		}
 		result.BiggestDay = &biggest
 	}

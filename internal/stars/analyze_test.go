@@ -1,6 +1,8 @@
 package stars
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -99,8 +101,32 @@ func TestMergedSpikeUsesTheNormalDayOfItsPeak(t *testing.T) {
 		t.Fatalf("spikes = %+v", a.Spikes)
 	}
 	spike := a.Spikes[0]
-	if spike.PeakStars != 600 || spike.NormalDay != 30 || spike.Ratio != 20 || spike.Unusual {
+	if spike.PeakStars != 600 || spike.NormalDay != 30 || spike.Ratio == nil || *spike.Ratio != 20 || spike.Unusual {
 		t.Errorf("peak %d, normal day %v, ratio %v, unusual %v", spike.PeakStars, spike.NormalDay, spike.Ratio, spike.Unusual)
+	}
+}
+
+func TestSpikeAfterDaysWithoutStarsHasNoRatio(t *testing.T) {
+	// 200 stars in the first ten days, then nothing for months, then 400
+	// stars in a day. The normal day before it is 0, so a ratio would only
+	// repeat the star count. The spike is still unusual: for the rules, a
+	// normal day under 1 star counts as 1.
+	daily := make([]int, 200)
+	for i := range daily[:10] {
+		daily[i] = 20
+	}
+	daily[150] = 400
+	a := Analyze(Series{Start: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC), Daily: daily})
+	if len(a.Spikes) != 1 {
+		t.Fatalf("spikes = %+v", a.Spikes)
+	}
+	spike := a.Spikes[0]
+	if spike.NormalDay != 0 || spike.Ratio != nil || !spike.Unusual || spike.Launch {
+		t.Errorf("normal day %v, ratio %v, unusual %v, launch %v", spike.NormalDay, spike.Ratio, spike.Unusual, spike.Launch)
+	}
+	data, _ := json.Marshal(spike)
+	if !strings.Contains(string(data), `"times_normal":null`) {
+		t.Errorf("JSON: %s", data)
 	}
 }
 
