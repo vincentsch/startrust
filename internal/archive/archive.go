@@ -65,9 +65,6 @@ type Cohort struct {
 	// OneOff is how many checked accounts starred no other repo in the
 	// window around the day.
 	OneOff int `json:"one_off"`
-	// Judged is true when the share of one-off accounts counts. Only then
-	// is OneOff out of Checked worth reading.
-	Judged bool `json:"judged"`
 	// Problem says why the day could not be judged; empty when it could.
 	Problem string `json:"problem,omitempty"`
 	// Provisional is set while the WindowDays after the day are not over.
@@ -85,6 +82,11 @@ func Settled(day, today time.Time) bool { return today.After(SettledOn(day)) }
 
 // Usable reports whether the day had enough archive data to judge.
 func (c Cohort) Usable() bool { return c.Problem == "" }
+
+// Judged reports whether the share of one-off accounts counts: the day had
+// enough archive data, and its window is over. Only then is OneOff out of
+// Checked worth reading.
+func (c Cohort) Judged() bool { return c.Usable() && !c.Provisional }
 
 // Sampled reports whether GH Archive had more accounts than were checked,
 // so the share comes from a sample of SampleSize of them.
@@ -130,7 +132,6 @@ func (c *Cohort) Judge(today time.Time) {
 	if c.Problem != "" {
 		c.Checked, c.OneOff = 0, 0
 	}
-	c.Judged = c.Problem == "" && !c.Provisional
 }
 
 // thousands formats a count with commas, like the rest of the output.

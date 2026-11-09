@@ -57,7 +57,7 @@ const (
 // Counts reports whether the day's account check can change the risk: GH
 // Archive had enough of its stargazers, and the 30 days after it are over.
 func (d Day) Counts() bool {
-	return d.Accounts != nil && d.Accounts.Usable() && !d.Accounts.Provisional
+	return d.Accounts != nil && d.Accounts.Judged()
 }
 
 func (d Day) level() dayLevel {
@@ -158,10 +158,11 @@ func Decide(r *Result, a stars.Analysis) {
 
 	targets := AccountTargets(r.Days, a.Spikes)
 	r.AccountsChecked = accountsChecked(r.Days, targets)
-	for _, d := range r.Days {
-		if d.Accounts != nil {
-			d.Accounts.Judged = d.Counts()
-		}
+	for i := range r.Days {
+		r.Days[i].Judged = r.Days[i].Counts()
+	}
+	if r.BiggestDay != nil {
+		r.BiggestDay.Judged = r.BiggestDay.Counts()
 	}
 
 	if a.Total == 0 {

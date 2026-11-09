@@ -122,8 +122,8 @@ func TestRealClickHouse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := Cohort{Day: launch, GitHubStars: 100, Archived: 100, Checked: 100, OneOff: 40, WindowRecorded: recorded(launch), Judged: true}
-	if cohort != want {
+	want := Cohort{Day: launch, GitHubStars: 100, Archived: 100, Checked: 100, OneOff: 40, WindowRecorded: recorded(launch)}
+	if cohort != want || !cohort.Judged() {
 		t.Errorf("cohort = %+v\nwant     %+v", cohort, want)
 	}
 
@@ -139,7 +139,7 @@ func TestRealClickHouse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cohort.WindowRecorded != recorded(gapDay) || cohort.WindowRecorded > 0.2 || !cohort.Gap() || cohort.Judged || cohort.Checked != 0 {
+	if cohort.WindowRecorded != recorded(gapDay) || cohort.WindowRecorded > 0.2 || !cohort.Gap() || cohort.Judged() || cohort.Checked != 0 {
 		t.Errorf("a day next to a gap must not be judged: %+v", cohort)
 	}
 }

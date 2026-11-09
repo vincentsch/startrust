@@ -230,8 +230,43 @@ func TestRecentLaunchIsProvisional(t *testing.T) {
 	if limits := strings.Join(r.Limits, "\n"); !strings.Contains(limits, "provisional") || !strings.Contains(limits, "after 2026-11-26") {
 		t.Errorf("limits should say when the check counts: %v", r.Limits)
 	}
-	if r.Days[0].Accounts.Judged {
+	if r.Days[0].Judged || r.BiggestDay.Judged {
 		t.Error("a provisional day is not judged")
+	}
+}
+
+func TestEveryDaySaysWhetherItWasJudged(t *testing.T) {
+	// The spike's accounts were checked; the quiet days were not. Each day
+	// in the JSON still has judged and accounts, so nothing is missing.
+	s, _ := quietThenSpike()
+	s.Daily[250] = 60
+	a := stars.Analyze(s)
+	r := &Result{Days: BiggestDays(s, a, BigDays)}
+	r.Days[0].Accounts = cohort(r.Days[0].Day, 400, 20)
+	biggest := r.Days[0]
+	r.BiggestDay = &biggest
+	Decide(r, a)
+	if len(r.Days) < 2 || !r.Days[0].Judged || !r.BiggestDay.Judged {
+		t.Fatalf("the checked day must be judged: %+v", r.Days)
+	}
+	data, err := json.Marshal(r.Days)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var days []map[string]any
+	json.Unmarshal(data, &days)
+	for i, d := range days {
+		judged, hasJudged := d["judged"]
+		accounts, hasAccounts := d["accounts"]
+		if !hasJudged || !hasAccounts {
+			t.Errorf("day %d has no judged or accounts field: %s", i+1, data)
+		}
+		if i > 0 && (judged != false || accounts != nil) {
+			t.Errorf("day %d was not checked: judged %v, accounts %v", i+1, judged, accounts)
+		}
+	}
+	if accounts, _ := days[0]["accounts"].(map[string]any); accounts == nil || accounts["judged"] != nil {
+		t.Errorf("judged belongs to the day, not to its accounts: %s", data)
 	}
 }
 

@@ -40,15 +40,24 @@ This is the layout without `--details`, from a check of fzf
       "normal_day": 26,
       "times_normal": 8.6,
       "spike": "",
+      "judged": true,
       "accounts": {
         "day": "2025-07-09T00:00:00Z",
         "github_stars": 223,
         "archived": 126,
         "window_recorded": 0.98,
         "checked": 126,
-        "one_off": 2,
-        "judged": true
+        "one_off": 2
       }
+    },
+    {
+      "day": "2024-10-27T00:00:00Z",
+      "stars": 153,
+      "normal_day": 23.5,
+      "times_normal": 6.5,
+      "spike": "",
+      "judged": false,
+      "accounts": null
     }
   ],
   "burst": null,
@@ -67,11 +76,15 @@ This is the layout without `--details`, from a check of fzf
 }
 ```
 
-A day that could not be judged looks like this. Its `checked` and
-`one_off` stay 0, because GH Archive had too little data for a share that
-means anything:
+The second day was not checked, so it has `"judged": false` and
+`"accounts": null`. Every day has both fields.
+
+A day that was checked but could not be judged looks like this. Its
+`checked` and `one_off` stay 0, because GH Archive had too little data for
+a share that means anything:
 
 ```json
+"judged": false,
 "accounts": {
   "day": "2026-10-18T00:00:00Z",
   "github_stars": 6066,
@@ -79,7 +92,6 @@ means anything:
   "window_recorded": 0.68,
   "checked": 0,
   "one_off": 0,
-  "judged": false,
   "problem": "GH Archive has only 113 of the 6,066 stars from this day",
   "provisional": true
 }
@@ -100,8 +112,9 @@ means anything:
   such as `composer thanks` star library repos automatically ([how it
   works](how-it-works.md#forks-watchers-and-issues)).
 - For a share of one-off accounts, read `days[].accounts` only where
-  `judged` is `true`. Then `one_off` out of `checked` is the share. On all
-  other days, ignore `checked` and `one_off`. There, `problem` or
+  `days[].judged` is `true`. Then `one_off` out of `checked` is the share.
+  On all other days, ignore `checked` and `one_off`. When `accounts` is
+  `null`, the accounts were not checked. Otherwise `problem` or
   `provisional` says why the day was not judged.
 
 ## Fields
@@ -144,7 +157,8 @@ Each entry of `days` and the `biggest_day` has these fields:
 | `normal_day` | Median stars per day in the 28 days before. |
 | `times_normal` | Stars that day divided by the normal day. A normal day under 1 star counts as 1. |
 | `spike` | `launch`, `unusual`, `spike`, or empty when the day is not part of a spike. |
-| `accounts` | The GH Archive check for that day, when it ran. See below. |
+| `judged` | `true` when the day's share of one-off accounts counts. Only then is `one_off` out of `checked` in `accounts` worth reading. `false` when the accounts were not checked, could not be judged or are provisional. |
+| `accounts` | The GH Archive check for that day, or `null` when the accounts were not checked. See below. |
 | `profiles` | With `--deep`: `accounts`, `new`, `empty` and `new_or_empty` counts for that day. An account can be both new and empty. |
 | `explanations` | With `--explain`: Hacker News posts (`kind: hacker_news`) and releases (`kind: release`) near the day. |
 
@@ -162,7 +176,6 @@ of these days, `accounts` has these fields:
 | `window_recorded` | How well GH Archive recorded the weeks around the day. See below. |
 | `checked` | Accounts StarTrust checked: all of `archived`, or a sample of 1,000 when there were more. 0 on a day with a `problem`. |
 | `one_off` | Checked accounts with no other public stars recorded in GH Archive within 30 days before or after. 0 on a day with a `problem`. |
-| `judged` | `true` when the share counts. Only then is `one_off` out of `checked` worth reading. |
 | `problem` | Set when GH Archive had too little data to judge the day, on the day or in the weeks around it. |
 | `provisional` | `true` while the 30 days after the day are not over. The share does not count until then. |
 

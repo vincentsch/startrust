@@ -26,6 +26,7 @@
     "normal_day": 0,
     "times_normal": 261,
     "spike": "launch",
+    "judged": false,
     "accounts": {
       "day": "2026-10-01T00:00:00Z",
       "github_stars": 261,
@@ -33,7 +34,6 @@
       "window_recorded": 1,
       "checked": 0,
       "one_off": 0,
-      "judged": false,
       "problem": "GH Archive has only 5 of the 261 stars from this day",
       "provisional": true
     }
@@ -46,6 +46,7 @@
       "normal_day": 0,
       "times_normal": 261,
       "spike": "launch",
+      "judged": false,
       "accounts": {
         "day": "2026-10-01T00:00:00Z",
         "github_stars": 261,
@@ -53,7 +54,6 @@
         "window_recorded": 1,
         "checked": 0,
         "one_off": 0,
-        "judged": false,
         "problem": "GH Archive has only 5 of the 261 stars from this day",
         "provisional": true
       }

@@ -89,7 +89,12 @@ type Day struct {
 	// "unusual", "spike", or "" when it is not part of a spike.
 	Spike string `json:"spike"`
 
-	Accounts     *archive.Cohort `json:"accounts,omitempty"`
+	// Judged is true when the day's share of one-off accounts counts. It
+	// is false when the accounts were not checked, and then Accounts is
+	// nil. Every day has both fields, so a reader never has to guess what
+	// a missing one means.
+	Judged       bool            `json:"judged"`
+	Accounts     *archive.Cohort `json:"accounts"`
 	Profiles     *Profiles       `json:"profiles,omitempty"`
 	Explanations []Explanation   `json:"explanations,omitempty"`
 }

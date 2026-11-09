@@ -45,7 +45,7 @@ func TestCohortReadsTheAnswer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !cohort.Judged || cohort.Archived != 4800 || cohort.Checked != 1000 || cohort.OneOff != 330 || cohort.WindowRecorded != 1 {
+	if !cohort.Judged() || cohort.Archived != 4800 || cohort.Checked != 1000 || cohort.OneOff != 330 || cohort.WindowRecorded != 1 {
 		t.Errorf("cohort = %+v", cohort)
 	}
 	if share := cohort.Share(); share != 0.33 {
@@ -62,7 +62,7 @@ func TestCohortWithTooFewArchivedStarsIsNotUsable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cohort.Usable() || cohort.Judged || !strings.Contains(cohort.Problem, "only 5 of the 261") {
+	if cohort.Usable() || cohort.Judged() || !strings.Contains(cohort.Problem, "only 5 of the 261") {
 		t.Errorf("cohort = %+v", cohort)
 	}
 	// Two of five accounts is not a share anybody should read.
@@ -112,7 +112,7 @@ func TestDayNextToAnArchiveGapIsNotJudged(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cohort.WindowRecorded != 0.3 || cohort.Judged || !cohort.Gap() || cohort.OneOff != 0 {
+	if cohort.WindowRecorded != 0.3 || cohort.Judged() || !cohort.Gap() || cohort.OneOff != 0 {
 		t.Errorf("cohort = %+v", cohort)
 	}
 	if !strings.Contains(cohort.Problem, "only 30% as many stars across GitHub in the 30 days before and after") {
@@ -122,7 +122,7 @@ func TestDayNextToAnArchiveGapIsNotJudged(t *testing.T) {
 	// A smaller dip is fine when the day itself is well recorded: 90% of
 	// the stars times 60% is still over the 40% that a day needs.
 	client = fakeClickHouse(t, 200, `{"data":[["900","900","100","36600","7000"]]}`, nil)
-	if cohort, _ := client.Cohort(context.Background(), []string{"a/b"}, day, 1000, today); !cohort.Judged {
+	if cohort, _ := client.Cohort(context.Background(), []string{"a/b"}, day, 1000, today); !cohort.Judged() {
 		t.Errorf("cohort = %+v", cohort)
 	}
 }
@@ -136,7 +136,7 @@ func TestRecentDayIsProvisional(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !cohort.Provisional || cohort.Problem != "" || cohort.Judged || cohort.OneOff != 60 {
+	if !cohort.Provisional || cohort.Problem != "" || cohort.Judged() || cohort.OneOff != 60 {
 		t.Errorf("cohort = %+v", cohort)
 	}
 }

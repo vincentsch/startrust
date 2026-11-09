@@ -80,12 +80,14 @@ Read these fields from the JSON, and only these:
   and never change the risk. `issues_and_prs_90_days` is `null` when the issues were not counted, for
   example because GitHub's search did not answer. Then tell the user that
   it was not counted. Do not say there were none.
-- `days[].accounts`, only where `judged` is `true`: then `one_off` out of
-  `checked` is the share of accounts with no other public stars recorded
-  in GH Archive within 30 days. On a day where `judged` is `false`, never
-  report a share. That day has a `problem` (GH Archive had too little
-  data, and `checked` and `one_off` are 0) or is `provisional` (too
-  recent to count).
+- `days[].accounts`, only where `days[].judged` is `true`: then `one_off`
+  out of `checked` is the share of accounts with no other public stars
+  recorded in GH Archive within 30 days. On a day where `judged` is
+  `false`, never report a share. Every day has both fields. When
+  `accounts` is `null`, the accounts behind that day were not checked.
+  Otherwise the day has a `problem` (GH Archive had too little data, and
+  `checked` and `one_off` are 0) or is `provisional` (too recent to
+  count).
 - StarTrust checks at most 1,000 accounts per day. When `checked` is
   smaller than `archived`, the share comes from a sample of 1,000 of the
   day's accounts. Say so when you report it. `archived` can be higher than
