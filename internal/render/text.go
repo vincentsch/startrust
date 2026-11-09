@@ -15,7 +15,11 @@ import (
 // Text writes the one-screen report. With details it adds the full evidence.
 func Text(w io.Writer, r *check.Result, details bool) {
 	fmt.Fprintf(w, "%s · %s stars · created %s\n", r.Repository, check.Number(r.Stars), r.CreatedAt.Format("2006-01-02"))
-	fmt.Fprintf(w, "%s\n\n", r.URL)
+	fmt.Fprintf(w, "%s\n", r.URL)
+	if line := formerNamesText(r); line != "" {
+		fmt.Fprintln(w, wrap(line, 80, ""))
+	}
+	fmt.Fprintln(w)
 	fmt.Fprintln(w, wrap(r.Verdict, 80, ""))
 	fmt.Fprintf(w, "Risk: %s\n", r.Risk)
 
@@ -75,6 +79,26 @@ func Text(w io.Writer, r *check.Result, details bool) {
 		footer += " Add --details for the full evidence."
 	}
 	fmt.Fprintln(w, wrap(footer, 80, ""))
+}
+
+// formerNamesText says which earlier names of the repo GitHub forwards to
+// it, so a reader who typed an old name sees why the header shows another.
+// When GH Archive was asked, it also says that those names were looked up.
+func formerNamesText(r *check.Result) string {
+	names := r.FormerNames
+	if len(names) == 0 {
+		return ""
+	}
+	list, that := names[0], "that name"
+	if len(names) > 1 {
+		list, that = strings.Join(names[:len(names)-1], ", ")+" and "+names[len(names)-1], "those names"
+	}
+	line := "GitHub forwards " + list + " to this repo."
+	switch r.Sources.Archive {
+	case "used", "partial", "unavailable":
+		line += " GH Archive was also searched under " + that + "."
+	}
+	return line
 }
 
 // activityRows lists what people do with the repo besides starring it,

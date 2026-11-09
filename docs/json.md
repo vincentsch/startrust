@@ -18,6 +18,7 @@ This is the layout without `--details`, from a check of fzf
   "schema_version": 1,
   "repository": "junegunn/fzf",
   "url": "https://github.com/junegunn/fzf",
+  "former_names": [],
   "checked_at": "2026-10-26T22:10:56Z",
   "created_at": "2013-10-23T16:04:23Z",
   "stars": 83802,
@@ -31,6 +32,7 @@ This is the layout without `--details`, from a check of fzf
   "findings": ["Accounts with no other public stars recorded in GH Archive within 30 days: 2% on 2025-07-09, ..."],
   "limits": ["Anyone can star any repo, ..."],
   "accounts_checked": "all",
+  "rename_suspected": false,
   "biggest_day": { "day": "2025-07-09T00:00:00Z", "stars": 223, "...": "..." },
   "unusual_spikes": 0,
   "days": [
@@ -111,6 +113,10 @@ a share that means anything:
   forks per 1,000 stars, but few forks alone mean nothing, because tools
   such as `composer thanks` star library repos automatically ([how it
   works](how-it-works.md#forks-watchers-and-issues)).
+- `rename_suspected` is `true` when GH Archive has no stars at all for a
+  busy day from before June 2026. The repo may have had another name then.
+  One of the `limits` gives the command to run with `--former-name`. See
+  [the repo was renamed](troubleshooting.md#the-repo-was-renamed).
 - For a share of one-off accounts, read `days[].accounts` only where
   `days[].judged` is `true`. Then `one_off` out of `checked` is the share.
   On all other days, ignore `checked` and `one_off`. When `accounts` is
@@ -126,6 +132,7 @@ a share that means anything:
 | `schema_version` | `1`. It goes up when the layout changes in a way that breaks readers. |
 | `repository` | The repo as `owner/name`, spelled the way GitHub spells it now. A renamed repo shows its new name. |
 | `url` | The repo's page on GitHub. |
+| `former_names` | Earlier names of the repo that GitHub forwards to it: the name you checked, when it was an old one, and every `--former-name`. The account check looked them up in GH Archive too. Empty when there are none. |
 | `checked_at` | When the check ran, in UTC. |
 | `created_at` | When the repo was created on GitHub. |
 | `stars` | The star count from GitHub's repo summary. |
@@ -139,6 +146,7 @@ a share that means anything:
 | `findings` | The evidence behind the verdict, one sentence each. |
 | `limits` | What the check could not see. |
 | `accounts_checked` | `all`, `some` or `none`. It says whether StarTrust could check the accounts behind the busy days that needed it. With `none`, the verdict rests on the timing of the stars. |
+| `rename_suspected` | `true` when GH Archive has no stars at all for the repo, under any of the names it was asked for, on a busy day from before June 2026. GH Archive files stars under the name a repo had at the time, so the repo may have had another name then. A line in `limits` gives the command to run. Since June 2026 GH Archive misses almost every star, so later days never set it. |
 | `biggest_day` | The day with the most stars, laid out like an entry of `days`. It is usually also in `days`. `null` for a repo without stars. |
 | `unusual_spikes` | How many unusual spikes the history has, cleared or not. |
 | `days` | Up to five of the busiest days, biggest first, at least 7 days apart. |

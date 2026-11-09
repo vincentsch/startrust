@@ -166,3 +166,27 @@ func TestExplainSaysWhenItFoundNothing(t *testing.T) {
 		t.Errorf("found a release:\n%s", out.String())
 	}
 }
+
+func TestFormerNamesAreShownUnderTheHeader(t *testing.T) {
+	r := &check.Result{Repository: "withastro/astro", URL: "https://github.com/withastro/astro",
+		FormerNames: []string{"snowpackjs/astro"}, Sources: check.Sources{Archive: "used"}}
+	var out, markdown strings.Builder
+	Text(&out, r, false)
+	Markdown(&markdown, r, false)
+	want := "GitHub forwards snowpackjs/astro to this repo. GH Archive was also searched under that name."
+	if !strings.Contains(strings.Join(strings.Fields(out.String()), " "), "https://github.com/withastro/astro "+want) {
+		t.Errorf("text:\n%s", out.String())
+	}
+	if !strings.Contains(markdown.String(), want) {
+		t.Errorf("markdown:\n%s", markdown.String())
+	}
+	// Without the account check, GH Archive was not searched at all.
+	r.Sources.Archive = "off"
+	r.FormerNames = append(r.FormerNames, "old-owner/astro")
+	out.Reset()
+	Text(&out, r, false)
+	if text := strings.Join(strings.Fields(out.String()), " "); !strings.Contains(text, "GitHub forwards snowpackjs/astro and old-owner/astro to this repo.") ||
+		strings.Contains(text, "searched") {
+		t.Errorf("text without the account check:\n%s", out.String())
+	}
+}

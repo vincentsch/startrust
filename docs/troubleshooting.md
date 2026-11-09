@@ -34,7 +34,8 @@ points to an empty folder. Add `--no-token` to check without it.
 
 Check the spelling. Private repos only work with a token that can read
 them. A repo that was renamed still works under its old name, because
-GitHub forwards it. The report then shows the current name.
+GitHub forwards it. The report then shows the current name, and the line
+under it says that GitHub forwards the old one.
 
 ## "No account check from GH Archive"
 
@@ -65,9 +66,36 @@ it. For newer spikes, use `--explain` to look for a Hacker News post or a
 release.
 
 When GH Archive has no stars at all for a busy day, the repo may have had
-another name then. GH Archive files stars under the name at the time, so
-check the repo under its old name, such as
-`startrust check old-owner/old-name`.
+another name then. See [the repo was renamed](#the-repo-was-renamed).
+
+## The repo was renamed
+
+GH Archive files stars under the name a repo had at the time. When a busy
+day from before June 2026 has no stars at all in GH Archive, the Limits
+part of the report gives a command such as this one:
+
+```sh
+startrust check withastro/astro --former-name OLD-OWNER/OLD-NAME
+```
+
+Put the repo's old name in place of `OLD-OWNER/OLD-NAME`. You can add
+`--former-name` more than once. StarTrust looks up every name in the same
+check, so one result covers the whole history. Checking the old name
+itself also works, such as `startrust check snowpackjs/astro`, because
+GitHub forwards it to the repo.
+
+GitHub does not list a repo's former names, so StarTrust cannot find them
+for you. Old links often show them, for example in the project's changelog,
+in its release notes or in blog posts from that time. If
+`https://github.com/old-owner/old-name` opens the repo in your browser,
+GitHub forwards that name, and StarTrust can use it. GH Archive matches
+names exactly, so write the old name with the same capital letters as back
+then.
+
+StarTrust only uses a former name that GitHub still forwards to the repo.
+For any other name it stops before the check with exit code 1 and a
+message such as "--former-name a/b: GitHub has no repo by that name". This
+keeps the stars of another repo out of the result.
 
 ## "Too new to judge" or "Not enough data to judge"
 

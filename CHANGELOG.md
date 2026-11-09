@@ -22,4 +22,5 @@ First release of StarTrust.
 - Save one file per finished check in a local cache, so `report` and `badge` work offline.
 - Work without a GitHub token, and print what was read so far when a limit is reached or you press Ctrl-C.
 - Say which GitHub token a check used, and check without one with `--no-token`.
+- Look up a renamed repo's old names in GH Archive (`--former-name`), say when GitHub forwarded an old name, and say what to run when a busy day suggests a rename.
 - Install checksum-checked binaries for Linux, macOS and Windows on amd64 and arm64.

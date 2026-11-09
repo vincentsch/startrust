@@ -318,8 +318,9 @@ please open an issue with the `--json --details` output.
 
 Some repos were renamed since their busy days. GH Archive files events
 under the name a repo had at the time, so these rows were also checked
-under their old names. You do that by passing the old name to `startrust
-check`, for example `startrust check Torantulino/Auto-GPT`.
+under their old names. You do that with `--former-name`, for example
+`startrust check Significant-Gravitas/AutoGPT --former-name Torantulino/Auto-GPT`.
+Checking the old name itself also works.
 
 The calibration data is in the repo. `internal/stars/testdata/` holds the
 star histories and the GH Archive answers. The flagged repos are stored

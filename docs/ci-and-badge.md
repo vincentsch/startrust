@@ -40,7 +40,7 @@ Inputs:
 | `version` | `latest` | StarTrust release to install, such as `v0.1.0`. |
 | `fail-on` | empty | Fail the step when the risk is at least `low`, `medium` or `high`. Empty never fails. |
 | `badge` | empty | Also write badge JSON to this path. |
-| `args` | empty | Extra flags for `startrust check`, such as `--explain`. |
+| `args` | empty | Extra flags for `startrust check`, such as `--explain` or `--former-name old-owner/old-name` for a renamed repo. |
 | `token` | the job token | GitHub token for the API. The job token is enough for public repos. |
 
 Outputs: `risk`, `verdict`, and `report` (the path of the full JSON report).

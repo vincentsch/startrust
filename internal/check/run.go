@@ -2,9 +2,12 @@ package check
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -68,7 +71,10 @@ func (r *Runner) now() time.Time {
 
 // Run checks one repo. It returns an error only when nothing useful could be
 // read; partial data gives a result with the gaps listed in its limits.
-func (r *Runner) Run(ctx context.Context, name string) (*Result, error) {
+//
+// formerNames are earlier names of the repo (--former-name). GitHub must
+// forward each of them to the repo, or Run returns a FormerNameError.
+func (r *Runner) Run(ctx context.Context, name string, formerNames ...string) (*Result, error) {
 	progress := r.progress()
 	// A Runner can check several repos in a row (compare), so count this
 	// check's requests from here.
@@ -83,6 +89,10 @@ func (r *Runner) Run(ctx context.Context, name string) (*Result, error) {
 		r.GitHub.Token = ""
 		progress.Note(fmt.Sprintf("GitHub rejected %s, so this check runs without a token (60 requests an hour).", tokenName(r.TokenSource)))
 		repo, err = r.GitHub.Repo(ctx, name)
+	}
+	var former []string
+	if err == nil {
+		former, err = r.formerNames(ctx, repo, name, formerNames)
 	}
 	if err != nil {
 		if tokenRejected && github.IsKind(err, github.ErrRateLimited) {
@@ -107,6 +117,7 @@ func (r *Runner) Run(ctx context.Context, name string) (*Result, error) {
 	analysis := stars.Analyze(series)
 
 	result := newResult(repo, series, analysis, now)
+	result.FormerNames = former
 	result.Sources.TokenSource = "none"
 	if r.GitHub.Token != "" {
 		result.Sources.TokenSource = r.TokenSource
@@ -123,7 +134,7 @@ func (r *Runner) Run(ctx context.Context, name string) (*Result, error) {
 
 	r.countIssues(ctx, result, repo, today)
 	if r.Archive != nil {
-		r.checkAccounts(ctx, result, repo, name, today)
+		r.checkAccounts(ctx, result, repo, today)
 	}
 	if r.Deep {
 		r.listStargazers(ctx, result, repo)
@@ -213,6 +224,69 @@ func tokenAdvice(source string) string {
 
 func (e tokenAndLimitError) Unwrap() error { return e.err }
 
+// FormerNameError means that GitHub does not forward a --former-name to the
+// repo, so StarTrust cannot tell that the name was ever the repo's own.
+type FormerNameError struct {
+	Name string // the --former-name
+	Repo string // the repo's current name
+	// Other is the repo GitHub has under that name now, or "" when it has
+	// none.
+	Other string
+}
+
+func (e FormerNameError) Error() string {
+	rule := "StarTrust only uses a former name that GitHub still forwards to " + e.Repo
+	switch {
+	case e.Other == "":
+		return fmt.Sprintf("--former-name %s: GitHub has no repo by that name. %s, so check the spelling", e.Name, rule)
+	case strings.EqualFold(e.Other, e.Name):
+		return fmt.Sprintf("--former-name %s: GitHub has a different repo under that name. %s, because GH Archive would add the other repo's stars",
+			e.Name, rule)
+	}
+	return fmt.Sprintf("--former-name %s: GitHub forwards it to %s, a different repo. %s, because GH Archive would add the other repo's stars",
+		e.Name, e.Other, rule)
+}
+
+// formerNames returns the earlier names of the repo to look up in GH
+// Archive: the name the user checked, when GitHub answered with the repo
+// under another name, and every --former-name. GitHub forwards the old
+// names of a renamed repo to it, so a --former-name that leads nowhere or to
+// another repo is refused.
+func (r *Runner) formerNames(ctx context.Context, repo github.Repo, asked string, given []string) ([]string, error) {
+	names := []string{}
+	known := func(name string) bool {
+		if strings.EqualFold(name, repo.FullName) {
+			return true
+		}
+		for _, n := range names {
+			if strings.EqualFold(n, name) {
+				return true
+			}
+		}
+		return false
+	}
+	if !known(asked) {
+		names = append(names, asked)
+	}
+	for _, name := range given {
+		if known(name) {
+			continue
+		}
+		r.progress().Status("Asking GitHub whether " + name + " leads to " + repo.FullName)
+		other, err := r.GitHub.Repo(ctx, name)
+		switch {
+		case github.IsKind(err, github.ErrNotFound):
+			return nil, FormerNameError{Name: name, Repo: repo.FullName}
+		case err != nil:
+			return nil, err
+		case other.ID != repo.ID:
+			return nil, FormerNameError{Name: name, Repo: repo.FullName, Other: other.FullName}
+		}
+		names = append(names, name)
+	}
+	return names, nil
+}
+
 // announce prints what the check is about to do and what it will cost.
 func (r *Runner) announce(repo github.Repo, now time.Time) {
 	pages := github.HistoryPages(repo.CreatedAt, now)
@@ -291,26 +365,22 @@ func (r *Runner) countIssues(ctx context.Context, result *Result, repo github.Re
 }
 
 // checkAccounts asks GH Archive about the busiest days.
-func (r *Runner) checkAccounts(ctx context.Context, result *Result, repo github.Repo, asked string, today time.Time) {
+func (r *Runner) checkAccounts(ctx context.Context, result *Result, repo github.Repo, today time.Time) {
 	targets := AccountTargets(result.Days, result.Details.Spikes)
 	if len(targets) == 0 {
 		result.Sources.Archive = "not_needed"
 		return
 	}
 	// GH Archive files events under the name a repo had at the time, so a
-	// renamed repo is also looked up under the name you asked for. The
-	// answer depends on both names, and so does where it is cached.
-	names, cacheName := []string{repo.FullName}, repo.FullName
-	if !strings.EqualFold(asked, repo.FullName) {
-		names = append(names, asked)
-		cacheName = asked
-	}
+	// renamed repo is also looked up under its former names. The answer
+	// depends on all the names, and so does where it is cached.
+	names := append([]string{repo.FullName}, result.FormerNames...)
 	progress := r.progress()
 	for n, i := range targets {
 		day := &result.Days[i]
-		key := date(day.Day)
+		key := date(day.Day) + namesKey(result.FormerNames)
 		var cohort archive.Cohort
-		if r.Cache != nil && r.Cache.Load("accounts", cacheName, key, &cohort) && cohort.GitHubStars == day.Stars {
+		if r.Cache != nil && r.Cache.Load("accounts", repo.FullName, key, &cohort) && cohort.GitHubStars == day.Stars {
 			day.Accounts = &cohort
 			continue
 		}
@@ -327,7 +397,7 @@ func (r *Runner) checkAccounts(ctx context.Context, result *Result, repo github.
 		// they are not cached.
 		day.Accounts = &cohort
 		if r.Cache != nil && !cohort.Provisional {
-			_ = r.Cache.Save("accounts", cacheName, key, cohort)
+			_ = r.Cache.Save("accounts", repo.FullName, key, cohort)
 		}
 	}
 	answered := 0
@@ -344,6 +414,19 @@ func (r *Runner) checkAccounts(ctx context.Context, result *Result, repo github.
 	default:
 		result.Sources.Archive = "partial"
 	}
+}
+
+// namesKey tells apart the cached answers for the same day under different
+// sets of former names. It is empty without former names. GH Archive
+// matches names exactly, so the key keeps their spelling.
+func namesKey(names []string) string {
+	if len(names) == 0 {
+		return ""
+	}
+	sorted := append([]string(nil), names...)
+	sort.Strings(sorted)
+	sum := sha256.Sum256([]byte(strings.Join(sorted, " ")))
+	return "-" + hex.EncodeToString(sum[:6])
 }
 
 // inProgress is the state saved while stargazers are listed, so an

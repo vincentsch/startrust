@@ -80,8 +80,12 @@ func NewApp(services Services) *rungrad.App {
 	return app
 }
 
-// apiError gives GitHub and file errors the right exit code.
+// apiError gives GitHub and file errors the right exit code. A
+// --former-name that GitHub does not forward to the repo is a usage error.
 func apiError(err error) error {
+	if errors.As(err, new(check.FormerNameError)) {
+		return rungrad.NewError(rungrad.ExitUsage, err.Error())
+	}
 	var apiErr *github.Error
 	if errors.As(err, &apiErr) {
 		code := rungrad.ExitAPI

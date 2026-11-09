@@ -394,7 +394,7 @@ func TestArchiveLimitsSayWhatIsMissing(t *testing.T) {
 	daily[100], daily[1500], daily[2500] = 584, 694, 900
 	s := stars.Series{Start: day("2010-07-23"), Daily: daily}
 	a := stars.Analyze(s)
-	r := &Result{Stars: s.Total(), Days: BiggestDays(s, a, BigDays), Sources: Sources{Archive: "used"}}
+	r := &Result{Repository: "me/tool", Stars: s.Total(), Days: BiggestDays(s, a, BigDays), Sources: Sources{Archive: "used"}}
 	today := day("2026-10-26")
 	for i := range r.Days {
 		c := &archive.Cohort{Day: r.Days[i].Day, GitHubStars: r.Days[i].Stars, WindowRecorded: 1}
@@ -410,15 +410,54 @@ func TestArchiveLimitsSayWhatIsMissing(t *testing.T) {
 	r.BiggestDay = &r.Days[0]
 	Decide(r, a)
 	limits := strings.Join(r.Limits, "\n")
+	if !r.RenameSuspected {
+		t.Error("a busy day without any record must make a rename suspected")
+	}
 	for _, want := range []string{
 		"GH Archive starts in February 2011, so it has no record of 2010-10-31.",
-		"GH Archive has no stars at all for this repo on 2014-08-31. If the repo had another name then, check it under that name",
+		"GH Archive has no stars at all for me/tool on 2014-08-31. It files stars under the name a repo had at the time, " +
+			"so the repo may have had another name then. If it did, run `startrust check me/tool --former-name OLD-OWNER/OLD-NAME` with that name.",
 		"GH Archive missed many stars across GitHub in the 30 days before and after 2017-05-27. " +
 			"The accounts from that day could look one-off only because their other stars are missing, so StarTrust did not judge it.",
 	} {
 		if !strings.Contains(limits, want) {
 			t.Errorf("limits are missing %q:\n%s", want, limits)
 		}
+	}
+}
+
+func TestRenameHintNamesTheCommandToRun(t *testing.T) {
+	// withastro/astro was snowpackjs/astro at its launch. A check that
+	// already looked up one former name and still found nothing on a day
+	// says how to add another one, with the names it already has.
+	s, a := quietThenSpike()
+	r := &Result{Repository: "withastro/astro", FormerNames: []string{"snowpackjs/astro"}, Stars: s.Total(),
+		Days: BiggestDays(s, a, BigDays), Sources: Sources{Archive: "used"}}
+	r.Days[0].Accounts = &archive.Cohort{Day: r.Days[0].Day, GitHubStars: r.Days[0].Stars, WindowRecorded: 1}
+	r.Days[0].Accounts.Judge(day("2026-10-26"))
+	Decide(r, a)
+	want := "GH Archive has no stars at all for withastro/astro or snowpackjs/astro on 2025-07-20. " +
+		"It files stars under the name a repo had at the time, so the repo may have had another name then. If it did, run " +
+		"`startrust check withastro/astro --former-name snowpackjs/astro --former-name OLD-OWNER/OLD-NAME` with that name."
+	if !r.RenameSuspected || !strings.Contains(strings.Join(r.Limits, "\n"), want) {
+		t.Errorf("rename suspected %v, limits:\n%s", r.RenameSuspected, strings.Join(r.Limits, "\n"))
+	}
+}
+
+func TestNoRenameHintWhereGHArchiveIsNearlyEmpty(t *testing.T) {
+	// Since June 2026 GH Archive misses almost every star, so a busy day
+	// without any record says nothing about the repo's name.
+	daily := make([]int, 300)
+	daily[200] = 500
+	s := stars.Series{Start: day("2026-01-01"), Daily: daily}
+	a := stars.Analyze(s)
+	r := &Result{Repository: "me/new", Stars: 500, Days: BiggestDays(s, a, BigDays), Sources: Sources{Archive: "used"}}
+	r.Days[0].Accounts = &archive.Cohort{Day: r.Days[0].Day, GitHubStars: 500, WindowRecorded: 1}
+	r.Days[0].Accounts.Judge(day("2026-10-26"))
+	Decide(r, a)
+	limits := strings.Join(r.Limits, "\n")
+	if r.RenameSuspected || strings.Contains(limits, "--former-name") || !strings.Contains(limits, "too few records") {
+		t.Errorf("day %s: rename suspected %v, limits:\n%s", date(r.Days[0].Day), r.RenameSuspected, limits)
 	}
 }
 

@@ -91,11 +91,17 @@ usually means no account check at all. Timing also cannot judge its
 launch, so the verdict is "Too new to judge" or "Not enough data to judge",
 with risk unknown. This is not a pass.
 
-GH Archive files events under the name a repo had at the time. StarTrust
-asks for the current name and the name you typed. If the repo had another
-name that you did not type, StarTrust misses the stars given under that
-name. When GH Archive has no stars at all for a busy day, the Limits part
-of the report suggests checking the repo under its old name.
+GH Archive files events under the name a repo had at the time. GitHub
+forwards the old names of a renamed repo to it, but it does not list them,
+so StarTrust cannot find them on its own. It looks up the current name, the
+name you typed, and every name you add with `--former-name`. If the repo
+had another name on a busy day, StarTrust misses the stars given under that
+name. When GH Archive has no stars at all for a busy day from before June
+2026, the Limits part of the report gives the command to run with
+`--former-name`, and the JSON has `"rename_suspected": true`. On later days
+GH Archive misses almost every star anyway, so a day without any record
+says nothing about the name. [Troubleshooting](troubleshooting.md#the-repo-was-renamed)
+shows how to find a former name.
 
 StarTrust reads GH Archive through ClickHouse's free public endpoint. It is
 a demo service with an hourly limit per user, and it can be slow or down.

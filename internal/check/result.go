@@ -40,14 +40,19 @@ func RiskRank(risk string) int {
 // Result is a finished check. Its JSON form is what `--json` prints and what
 // the cache stores.
 type Result struct {
-	SchemaVersion int       `json:"schema_version"`
-	Repository    string    `json:"repository"`
-	URL           string    `json:"url"`
-	CheckedAt     time.Time `json:"checked_at"`
-	CreatedAt     time.Time `json:"created_at"`
-	Stars         int       `json:"stars"`
-	Forks         int       `json:"forks"`
-	Watchers      int       `json:"watchers"`
+	SchemaVersion int    `json:"schema_version"`
+	Repository    string `json:"repository"`
+	URL           string `json:"url"`
+	// FormerNames are earlier names of the repo that GitHub forwards to it:
+	// the name you checked, when it was an old one, and every --former-name.
+	// GH Archive files stars under the name a repo had at the time, so the
+	// account check looks up these names too.
+	FormerNames []string  `json:"former_names"`
+	CheckedAt   time.Time `json:"checked_at"`
+	CreatedAt   time.Time `json:"created_at"`
+	Stars       int       `json:"stars"`
+	Forks       int       `json:"forks"`
+	Watchers    int       `json:"watchers"`
 	// IssuesAndPRs counts the issues and pull requests opened in the last
 	// ActivityDays days. It is nil when they were not counted.
 	IssuesAndPRs *int `json:"issues_and_prs_90_days"`
@@ -63,7 +68,12 @@ type Result struct {
 	// AccountsChecked says whether the accounts behind the busy days were
 	// checked: "all", "some" or "none". With "none", the verdict rests on
 	// the timing of the stars.
-	AccountsChecked string       `json:"accounts_checked"`
+	AccountsChecked string `json:"accounts_checked"`
+	// RenameSuspected is true when GH Archive has no stars at all for the
+	// repo, under any of its names, on a busy day from before June 2026.
+	// The repo may have had another name then, and a limit says what to
+	// run.
+	RenameSuspected bool         `json:"rename_suspected"`
 	BiggestDay      *Day         `json:"biggest_day"`
 	UnusualSpikes   int          `json:"unusual_spikes"`
 	Days            []Day        `json:"days"`

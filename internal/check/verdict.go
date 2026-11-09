@@ -158,6 +158,7 @@ func Decide(r *Result, a stars.Analysis) {
 
 	targets := AccountTargets(r.Days, a.Spikes)
 	r.AccountsChecked = accountsChecked(r.Days, targets)
+	r.RenameSuspected = len(daysWithoutRecord(r.Days)) > 0
 	for i := range r.Days {
 		r.Days[i].Judged = r.Days[i].Counts()
 	}
@@ -595,11 +596,15 @@ func overallProfileFinding(p Profiles) string {
 		Number(p.Accounts), percent(float64(p.New)/float64(p.Accounts)), NewAccountDays, percent(float64(p.Empty)/float64(p.Accounts)))
 }
 
-func joinAnd(parts []string) string {
+func joinAnd(parts []string) string { return join(parts, "and") }
+
+func joinOr(parts []string) string { return join(parts, "or") }
+
+func join(parts []string, word string) string {
 	if len(parts) <= 2 {
-		return strings.Join(parts, " and ")
+		return strings.Join(parts, " "+word+" ")
 	}
-	return strings.Join(parts[:len(parts)-1], ", ") + " and " + parts[len(parts)-1]
+	return strings.Join(parts[:len(parts)-1], ", ") + " " + word + " " + parts[len(parts)-1]
 }
 
 func baseLimits(r *Result, targets []int) []string {
@@ -624,7 +629,7 @@ func baseLimits(r *Result, targets []int) []string {
 	if r.Sources.ArchiveProblem != "" {
 		limits = append(limits, "No account check from GH Archive: "+r.Sources.ArchiveProblem+".")
 	}
-	var thin, gaps, none, early, recent []string
+	var thin, gaps, early, recent []string
 	for _, d := range r.Days {
 		switch c := d.Accounts; {
 		case c == nil:
@@ -634,9 +639,6 @@ func baseLimits(r *Result, targets []int) []string {
 			gaps = append(gaps, date(d.Day))
 		case !c.Usable():
 			thin = append(thin, fmt.Sprintf("%s (%s of %s stars)", date(d.Day), Number(c.Archived), Number(c.GitHubStars)))
-			if c.Archived == 0 {
-				none = append(none, date(d.Day))
-			}
 		case c.Provisional:
 			recent = append(recent, date(d.Day))
 		}
@@ -644,11 +646,15 @@ func baseLimits(r *Result, targets []int) []string {
 	if len(thin) > 0 {
 		limits = append(limits, "GH Archive has too few records to check the accounts on "+joinAnd(thin)+".")
 	}
-	if len(none) > 0 {
-		// GH Archive files stars under the name a repo had at the time, so
-		// no record at all often means the repo had another name.
-		limits = append(limits, fmt.Sprintf("GH Archive has no stars at all for this repo on %s. If the repo had another name then, "+
-			"check it under that name, because GH Archive files stars under the name a repo had at the time.", joinAnd(none)))
+	if none := daysWithoutRecord(r.Days); len(none) > 0 {
+		names := append([]string{r.Repository}, r.FormerNames...)
+		command := "startrust check " + r.Repository
+		for _, name := range r.FormerNames {
+			command += " --former-name " + name
+		}
+		command += " --former-name OLD-OWNER/OLD-NAME"
+		limits = append(limits, fmt.Sprintf("GH Archive has no stars at all for %s on %s. It files stars under the name a repo had at the time, "+
+			"so the repo may have had another name then. If it did, run `%s` with that name.", joinOr(names), joinAnd(none), command))
 	}
 	if len(gaps) > 0 {
 		that, it := "that day", "it"
@@ -695,6 +701,26 @@ func lastSettle(days []Day) time.Time {
 
 // archiveStart is the first day GH Archive has events for.
 var archiveStart = time.Date(2011, 2, 12, 0, 0, 0, 0, time.UTC)
+
+// archiveNearlyEmpty is when GH Archive began to miss almost every star
+// (docs/limits.md has the shares by month). On a later day, no record at
+// all is what GH Archive usually has.
+var archiveNearlyEmpty = time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
+
+// daysWithoutRecord returns the busy days on which GH Archive has no star at
+// all for the repo under any of the names it was asked for. GH Archive
+// files stars under the name a repo had at the time, so on a day before it
+// began to miss almost every star, this usually means another name.
+func daysWithoutRecord(days []Day) []string {
+	var none []string
+	for _, d := range days {
+		c := d.Accounts
+		if c != nil && c.Archived == 0 && c.GitHubStars > 0 && !d.Day.Before(archiveStart) && d.Day.Before(archiveNearlyEmpty) {
+			none = append(none, date(d.Day))
+		}
+	}
+	return none
+}
 
 func dayAt(days []Day, day time.Time) (Day, bool) {
 	for _, d := range days {

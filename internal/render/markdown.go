@@ -14,6 +14,9 @@ func Markdown(w io.Writer, r *check.Result, details bool) {
 	fmt.Fprintf(w, "## Stars of [%s](%s)\n\n", r.Repository, r.URL)
 	fmt.Fprintf(w, "**%s**\n\n", escape(r.Verdict))
 	fmt.Fprintf(w, "%s stars, created %s. Risk: %s.\n\n", check.Number(r.Stars), r.CreatedAt.Format("2006-01-02"), r.Risk)
+	if line := formerNamesText(r); line != "" {
+		fmt.Fprintf(w, "%s\n\n", escape(line))
+	}
 
 	fmt.Fprintln(w, "### Activity")
 	fmt.Fprintln(w)

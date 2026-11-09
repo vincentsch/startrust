@@ -14,6 +14,7 @@ import (
 
 	"github.com/vincentsch/startrust/internal/cache"
 	"github.com/vincentsch/startrust/internal/check"
+	"github.com/vincentsch/startrust/internal/github"
 	"github.com/vincentsch/startrust/internal/render"
 )
 
@@ -30,6 +31,9 @@ func checkCommand(services Services) *rungrad.Command {
 			"for one or two checks. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the\n" +
 			"GitHub CLI, StarTrust uses that token. The last line of the report says which one it\n" +
 			"used. Add --no-token to check without one.\n\n" +
+			"GH Archive files stars under the name a repo had at the time. If the repo was renamed,\n" +
+			"add its old name with --former-name, and one check covers its whole history. Checking\n" +
+			"the old name itself works too, because GitHub forwards it to the repo.\n\n" +
 			"Maintainers can add --deep to compare the profiles of the people who starred their repo.",
 		Args: oneArg("check takes one repo, such as junegunn/fzf; use `startrust compare` for several"),
 		Examples: []string{
@@ -39,6 +43,7 @@ func checkCommand(services Services) *rungrad.Command {
 			"startrust check owner/repo --json",
 			"startrust check owner/repo --fail-on high",
 			"startrust check owner/repo --no-token",
+			"startrust check withastro/astro --former-name snowpackjs/astro",
 		},
 		OutputModes: []string{rungrad.OutputModeHuman, rungrad.OutputModeJSON},
 		Related:     []string{"startrust compare", "startrust report", "startrust badge"},
@@ -48,10 +53,15 @@ func checkCommand(services Services) *rungrad.Command {
 			cmd.Flags().String("out", "", "Write the report to this file instead of the terminal")
 			cmd.Flags().Bool("deep", false, "Also list who starred and compare their profiles (needs push access to the repo)")
 			cmd.Flags().String("fail-on", "", "Exit with code 7 when the risk is at least this level: low, medium or high (an unknown risk never matches)")
+			cmd.Flags().StringArray("former-name", nil, "An earlier `owner/name` of the repo, also looked up in GH Archive (repeat it for several)")
 			addRunFlags(cmd)
 		},
 		Run: func(f *rungrad.Factory, cmd *cobra.Command, args []string) error {
 			name, err := parseRepo(args[0])
+			if err != nil {
+				return err
+			}
+			formerNames, err := formerNameFlags(cmd)
 			if err != nil {
 				return err
 			}
@@ -72,7 +82,7 @@ func checkCommand(services Services) *rungrad.Command {
 			if err != nil {
 				return err
 			}
-			result, err := run.Run(cmd.Context(), name)
+			result, err := run.Run(cmd.Context(), name, formerNames...)
 			if err != nil {
 				return apiError(err)
 			}
@@ -85,6 +95,24 @@ func checkCommand(services Services) *rungrad.Command {
 			return failOnError(f, result, failOn)
 		},
 	}
+}
+
+// formerNameFlags reads --former-name. Each value is owner/name or a GitHub
+// URL. The names only matter for the account check in GH Archive.
+func formerNameFlags(cmd *cobra.Command) ([]string, error) {
+	values, _ := cmd.Flags().GetStringArray("former-name")
+	if noArchive, _ := cmd.Flags().GetBool("no-archive"); noArchive && len(values) > 0 {
+		return nil, usageError("--former-name is for the account check in GH Archive, so it does nothing with --no-archive")
+	}
+	var names []string
+	for _, value := range values {
+		name, ok := github.ParseName(value)
+		if !ok {
+			return nil, usageError("--former-name %q is not a GitHub repo; use owner/name, for example snowpackjs/astro", value)
+		}
+		names = append(names, name)
+	}
+	return names, nil
 }
 
 // writeResult prints a result as text, Markdown or JSON, to the terminal or

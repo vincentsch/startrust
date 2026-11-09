@@ -40,7 +40,9 @@ startrust check owner/repo
 ```
 
 You can also paste a GitHub URL, such as
-`startrust check https://github.com/junegunn/fzf`.
+`startrust check https://github.com/junegunn/fzf`. An old name of a renamed
+repo works too, because GitHub forwards it. The report then shows the
+current name, and the line under it says which name GitHub forwarded.
 
 A check needs no account. Without a token, GitHub allows 60 requests an hour
 from your IP address. A check needs one request for each 30 weeks of the

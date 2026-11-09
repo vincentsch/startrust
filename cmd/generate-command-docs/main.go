@@ -63,10 +63,13 @@ func describeFlag(page string, f *pflag.Flag) string {
 	switch {
 	case f.Name == "cache-dir":
 		def = "Linux `~/.cache/startrust`, macOS `~/Library/Caches/startrust`, Windows `%LocalAppData%\\startrust`"
-	case f.DefValue == "":
+	case f.DefValue == "" || f.DefValue == "[]":
 		def = "none"
 	}
-	return strings.ReplaceAll(page, prefix+"\n", prefix+". Type: `"+f.Value.Type()+"`. Default: "+def+".\n")
+	// A flag you can repeat says so in its text, so its type is just a
+	// string.
+	kind := strings.TrimSuffix(f.Value.Type(), "Array")
+	return strings.ReplaceAll(page, prefix+"\n", prefix+". Type: `"+kind+"`. Default: "+def+".\n")
 }
 
 func run(check bool, dir string) error {

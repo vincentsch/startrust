@@ -31,10 +31,12 @@ StarTrust asks GitHub for the repo summary and its daily star history. It
 also sends one search that counts the issues and pull requests opened in
 the last 90 days. With `--explain` it adds a request for the repo's
 releases, and with `--deep` it asks for the stargazer list of your own
-repo.
+repo. For each `--former-name`, it asks GitHub whether that name leads to
+the repo.
 
 For the account check, StarTrust sends the repo name and the dates of its
-busiest days to ClickHouse's public endpoint, one query per day. Use
+busiest days to ClickHouse's public endpoint, one query per day. A renamed
+repo's former names go along. Use
 `--no-archive` to leave this out.
 
 Only with `--explain`, StarTrust sends the repo's GitHub URL and its
@@ -47,6 +49,15 @@ There is no telemetry. Results stay in your cache directory.
 Most checks take 5 to 15 seconds. About half of that goes to GitHub's
 history, and half to the account check. A repo that is many years old
 needs more history requests. `--deep` adds one request per 100 stargazers.
+
+## What if the repo was renamed?
+
+GH Archive files stars under the name a repo had at the time. Add the old
+name with `--former-name`, and StarTrust looks up both names in the same
+check. Checking the old name also works, because GitHub forwards it to the
+repo. When a busy day suggests a rename, the Limits part of the report says
+what to run. [Troubleshooting](troubleshooting.md#the-repo-was-renamed) has
+the details.
 
 ## Why does the chart start before the first star?
 

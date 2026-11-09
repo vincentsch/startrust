@@ -8,6 +8,8 @@ Below the verdict you see the repo's activity, such as its forks and recent issu
 
 You need no setup. Without a token, GitHub allows 60 requests an hour, which is enough for one or two checks. If GITHUB_TOKEN or GH_TOKEN is set, or you are logged in with the GitHub CLI, StarTrust uses that token. The last line of the report says which one it used. Add --no-token to check without one.
 
+GH Archive files stars under the name a repo had at the time. If the repo was renamed, add its old name with --former-name, and one check covers its whole history. Checking the old name itself works too, because GitHub forwards it to the repo.
+
 Maintainers can add --deep to compare the profiles of the people who starred their repo.
 
 ## Usage
@@ -25,6 +27,7 @@ startrust check owner/repo --markdown --out stars.md
 startrust check owner/repo --json
 startrust check owner/repo --fail-on high
 startrust check owner/repo --no-token
+startrust check withastro/astro --former-name snowpackjs/astro
 ```
 
 ## Flags
@@ -34,6 +37,7 @@ startrust check owner/repo --no-token
 - `--details` Show the full evidence (and include it in --json). Type: `bool`. Default: `false`.
 - `--explain` Look for Hacker News posts and releases near the busiest days. Type: `bool`. Default: `false`.
 - `--fail-on` Exit with code 7 when the risk is at least this level: low, medium or high (an unknown risk never matches). Type: `string`. Default: none.
+- `--former-name` An earlier `owner/name` of the repo, also looked up in GH Archive (repeat it for several). Type: `string`. Default: none.
 - `--markdown` Write a Markdown report for sharing. Type: `bool`. Default: `false`.
 - `--max-requests` Stop after this many GitHub requests and report what was read. Type: `int`. Default: `1000`.
 - `--no-archive` Leave out the account check in GH Archive (the verdict then rests on the timing of the stars). Type: `bool`. Default: `false`.

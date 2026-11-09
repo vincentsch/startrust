@@ -162,6 +162,7 @@ startrust check owner/repo --explain        # match busy days to Hacker News pos
 startrust check owner/repo --json           # a compact summary for scripts and agents
 startrust check owner/repo --markdown --out stars.md
 startrust compare junegunn/fzf charmbracelet/glow
+startrust check owner/repo --former-name old-owner/old-name   # a renamed repo: also look up its old name
 startrust check your/repo --deep            # maintainers: compare the profiles of your stargazers
 ```
 

@@ -3,6 +3,7 @@ package check
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -238,12 +239,106 @@ func TestOldNameGetsItsOwnAccountCheck(t *testing.T) {
 	if c := result.Days[0].Accounts; c == nil || c.Archived != 480 {
 		t.Errorf("accounts under the old name = %+v after %d queries", c, len(queries))
 	}
+	// The result says that GitHub answered for the old name with the repo
+	// under its new one.
+	if result.Repository != "new/name" || len(result.FormerNames) != 1 || result.FormerNames[0] != "old/name" {
+		t.Errorf("repository %s, former names %v", result.Repository, result.FormerNames)
+	}
 	// `startrust report old/name` must find the check right after.
 	if _, _, err := store.LatestCheck("old/name"); err != nil {
 		t.Errorf("no saved check under the old name: %v", err)
 	}
 	if _, _, err := store.LatestCheck("new/name"); err != nil {
 		t.Errorf("no saved check under the current name: %v", err)
+	}
+}
+
+func TestFormerNamesMustLeadToTheRepo(t *testing.T) {
+	// GitHub forwards old/name to the repo the way it forwards renamed
+	// repos. other/repo is a different repo, and gone/name does not exist.
+	// GH Archive knows the busy days only under old/name.
+	sunday := time.Date(2023, 4, 9, 0, 0, 0, 0, time.UTC).Unix()
+	var history atomic.Int32
+	gh := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		switch req.URL.Path {
+		case "/repos/new/name/stargazers/history":
+			history.Add(1)
+			fmt.Fprintf(w, `[{"week":%d,"total":500,"days":[0,0,0,0,500,0,0]},{"week":%d,"total":300,"days":[0,0,0,0,300,0,0]}]`,
+				sunday, sunday+7*86400)
+		case "/repos/new/name", "/repositories/4":
+			io.WriteString(w, `{"id":4,"full_name":"new/name","created_at":"2023-04-01T00:00:00Z","stargazers_count":800}`)
+		case "/repos/old/name":
+			http.Redirect(w, req, "/repositories/4", http.StatusMovedPermanently)
+		case "/repos/other/repo":
+			io.WriteString(w, `{"id":9,"full_name":"other/repo","created_at":"2020-01-01T00:00:00Z","stargazers_count":10}`)
+		default:
+			http.NotFound(w, req)
+		}
+	}))
+	defer gh.Close()
+	var queries []string
+	clickhouse := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		body, _ := io.ReadAll(req.Body)
+		queries = append(queries, string(body))
+		if strings.Contains(string(body), "'old/name'") {
+			io.WriteString(w, `{"data":[["480","480","10","61000","7000"]]}`)
+			return
+		}
+		io.WriteString(w, `{"data":[["0","0","0","61000","7000"]]}`)
+	}))
+	defer clickhouse.Close()
+	store, _ := cache.Open(t.TempDir())
+	r := &Runner{
+		GitHub:  &github.Client{BaseURL: gh.URL},
+		Archive: &archive.Client{Endpoint: clickhouse.URL},
+		Cache:   store,
+		Now:     func() time.Time { return time.Date(2026, 10, 26, 18, 0, 0, 0, time.UTC) },
+	}
+
+	// Under its current name alone, GH Archive has nothing, so the check
+	// suspects a rename and says what to run.
+	result, err := r.Run(context.Background(), "new/name")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.RenameSuspected || !strings.Contains(strings.Join(result.Limits, "\n"), "`startrust check new/name --former-name OLD-OWNER/OLD-NAME`") {
+		t.Errorf("rename suspected %v, limits:\n%s", result.RenameSuspected, strings.Join(result.Limits, "\n"))
+	}
+
+	// With the former name, every query asks for both names, and the
+	// answer cached for the current name alone is not reused.
+	queries = nil
+	result, err = r.Run(context.Background(), "new/name", "old/name", "NEW/NAME")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.FormerNames) != 1 || result.FormerNames[0] != "old/name" || result.RenameSuspected || result.AccountsChecked != "all" {
+		t.Errorf("former names %v, rename suspected %v, accounts checked %s", result.FormerNames, result.RenameSuspected, result.AccountsChecked)
+	}
+	if len(queries) != 2 {
+		t.Errorf("%d GH Archive queries, want 2", len(queries))
+	}
+	for _, q := range queries {
+		if !strings.Contains(q, "IN ('new/name', 'old/name')") {
+			t.Errorf("query without both names:\n%s", q)
+		}
+	}
+
+	// A name that leads nowhere, or to another repo, is refused before the
+	// check reads anything else.
+	before := history.Load()
+	for name, want := range map[string]FormerNameError{
+		"gone/name":  {Name: "gone/name", Repo: "new/name"},
+		"other/repo": {Name: "other/repo", Repo: "new/name", Other: "other/repo"},
+	} {
+		_, err := r.Run(context.Background(), "new/name", name)
+		var got FormerNameError
+		if !errors.As(err, &got) || got != want {
+			t.Errorf("%s: error %v", name, err)
+		}
+	}
+	if history.Load() != before {
+		t.Error("a refused former name still read the star history")
 	}
 }
 
